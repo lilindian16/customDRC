@@ -40,7 +40,7 @@ public:
     void write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t *data, uint8_t data_length);
 
 private:
-    void USART_Transmit(unsigned int data);
-    unsigned int USART_Receive(void);
-    bool rx_bytes_to_read(void);
+    int tx_pin;
+    int rx_pin;
+    int tx_en_pin;
 };

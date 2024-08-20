@@ -21,8 +21,12 @@ EspSoftwareSerial::UART rs485_serial_port;
 
 void AudisonACLink::init_ac_link_bus(RS485_Config_t *rs485_config)
 {
-    rs485_serial_port.begin(rs485_config->rs485_baudrate, SWSERIAL_8S1, rs485_config->rs485_rx_pin, rs485_config->rs485_tx_pin);
-    digitalWrite(rs485_config->rs485_tx_en_pin, LOW); // RX EN pin is always low, we control flow with the TX pin going high
+    this->tx_pin = rs485_config->rs485_tx_pin;
+    this->rx_pin = rs485_config->rs485_rx_pin;
+    this->tx_en_pin = rs485_config->rs485_tx_en_pin;
+
+    rs485_serial_port.begin(rs485_config->rs485_baudrate, SWSERIAL_8S1, this->rx_pin, this->tx_pin);
+    digitalWrite(this->tx_en_pin, LOW); // RX EN pin is always low, we control flow with the TX pin going high
 }
 
 void AudisonACLink::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t *data, uint8_t data_length)
@@ -44,6 +48,8 @@ void AudisonACLink::write_to_audison_bus(uint8_t receiver_address, uint8_t trans
     uint8_t checksum = byte_sum % 256;
     message_buffer[message_length - 1] = checksum;
 
+    digitalWrite(this->tx_en_pin, HIGH); // TX output enable
+
     for (uint8_t i = 0; i < message_length; i++)
     {
         if (i == 0)
@@ -55,4 +61,6 @@ void AudisonACLink::write_to_audison_bus(uint8_t receiver_address, uint8_t trans
             rs485_serial_port.write(message_buffer[i], EspSoftwareSerial::PARITY_SPACE);
         }
     }
+
+    digitalWrite(this->tx_en_pin, LOW); // TX output disable
 }
