@@ -33,4 +33,6 @@ public:
 
 private:
     void USART_Transmit(unsigned int data);
+    unsigned int USART_Receive(void);
+    bool rx_bytes_to_read(void);
 };

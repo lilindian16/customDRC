@@ -68,3 +68,28 @@ void UART_9BIT::USART_Transmit(unsigned int data)
     /* Put data into buffer, sends the data */
     UDR0 = data;
 }
+
+bool UART_9BIT::rx_bytes_to_read(void)
+{
+    return (UCSR0A & (1 << RXC0)); // Register flag is set when data is to be read
+}
+
+unsigned int UART_9BIT::USART_Receive(void) // This is currently blocking!!
+{
+    unsigned char status, resh, resl;
+    /* Wait for data to be received */
+    if (rx_bytes_to_read)
+    {
+        /* Get status and 9th bit, then data */
+        /* from buffer */
+        status = UCSR0A;
+        resh = UCSR0B;
+        resl = UDR0;
+        /* If error, return -1 */
+        if (status & (1 << FE0) | (1 << DOR0) | (1 << UPE0))
+            return -1;
+        /* Filter the 9th bit, then return */
+        resh = (resh >> 1) & 0x01;
+        return ((resh << 8) | resl);
+    }
+}
