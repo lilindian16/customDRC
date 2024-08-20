@@ -22,7 +22,7 @@ void setup(void)
 
 void loop(void)
 {
-  /* Trial trnasmit function. We can send volume adjust packets for now */
+  /* Trial transmit function. We can send volume adjust packets for now */
   for (uint8_t i = 0; i <= 0x78; i++)
   {
     uint8_t volume_adjust_packet[2] = {0x0A, i};
