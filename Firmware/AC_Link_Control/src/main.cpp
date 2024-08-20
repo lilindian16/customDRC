@@ -1,9 +1,6 @@
 #include <Arduino.h>
 #include <AudisonACLink.hpp>
 
-#define AUDISON_BIT10_RS485_ADDRESS 0x00
-#define AUDISON_DRC_RS485_ADDRESS 0x80
-
 #define RS485_TX_PIN 15
 #define RS485_RX_PIN 6
 #define RS485_TX_EN_PIN 2
@@ -25,13 +22,9 @@ void loop(void)
   /* Trial transmit function. We can send volume adjust packets for now */
   for (uint8_t i = 0; i <= 0x78; i++)
   {
-    uint8_t volume_adjust_packet[2] = {0x0A, i};
-    ac_link.write_to_audison_bus(AUDISON_BIT10_RS485_ADDRESS,
-                                 AUDISON_DRC_RS485_ADDRESS,
-                                 (uint8_t *)volume_adjust_packet,
-                                 sizeof(volume_adjust_packet));
+    ac_link.set_volume(i);
     Serial.print("Volume: ");
     Serial.println(i, HEX);
-    delay(1000);
+    delay(250);
   }
 }
