@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "SN65HVD75DR")(type "KiCad")(uri "${KIPRJMOD}/KiCadLibs/Symbols/SN65HVD75DR.kicad_sym")(options "")(descr ""))
+)

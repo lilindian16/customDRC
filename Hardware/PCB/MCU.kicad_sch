@@ -1,0 +1,176 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "a05fa4e1-a2ea-41d8-b3f9-f25892eb16bb")
+	(paper "A4")
+	(lib_symbols)
+	(hierarchical_label "IO_BB"
+		(shape input)
+		(at 123.19 146.05 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "0d9a649f-ddc6-4fef-afa5-4aafd9f9b7d0")
+	)
+	(hierarchical_label "BUTTON_POWER"
+		(shape output)
+		(at 138.43 140.97 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "30166e01-a8a9-405c-9f88-a65ca04495f5")
+	)
+	(hierarchical_label "GPIO_^^"
+		(shape output)
+		(at 123.19 127 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "45f32b55-6402-4154-8226-e76160006321")
+	)
+	(hierarchical_label "GPIO_##"
+		(shape output)
+		(at 123.19 119.38 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "475047a4-fa0e-4d31-9bc6-0d5035c73fb6")
+	)
+	(hierarchical_label "IO_CC"
+		(shape input)
+		(at 123.19 148.59 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4feeae02-f147-4f7b-9b70-50a3bd99c5b4")
+	)
+	(hierarchical_label "POT_POWER"
+		(shape output)
+		(at 123.19 140.97 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6be9df49-0a1c-4526-9b38-305e8a10f21a")
+	)
+	(hierarchical_label "IO_ZZ"
+		(shape input)
+		(at 138.43 151.13 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "915c8909-122a-47e5-9f1f-23deeeaee3b9")
+	)
+	(hierarchical_label "IO_WW"
+		(shape input)
+		(at 138.43 143.51 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "96e27781-e7c3-4be6-bf47-0693aeabc35a")
+	)
+	(hierarchical_label "GPIO_%%"
+		(shape input)
+		(at 123.19 124.46 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9c4eb227-e754-4a6a-8f98-7e217450c7c0")
+	)
+	(hierarchical_label "IO_DD"
+		(shape input)
+		(at 123.19 151.13 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b0784037-221e-4b56-9a88-3ffebcd38044")
+	)
+	(hierarchical_label "GPIO_$$"
+		(shape output)
+		(at 123.19 121.92 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b5bb0c34-1c93-40a2-b72b-f91f2a9622b2")
+	)
+	(hierarchical_label "IO_AA"
+		(shape input)
+		(at 123.19 143.51 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ba95123b-003b-4197-85bd-9f88316f5d8a")
+	)
+	(hierarchical_label "IO_XX"
+		(shape input)
+		(at 138.43 146.05 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ebfa4042-493f-4840-a6db-91ee35366d6d")
+	)
+	(hierarchical_label "IO_YY"
+		(shape input)
+		(at 138.43 148.59 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "f677da95-abb9-4568-8be5-d0fb67c8c04a")
+	)
+)

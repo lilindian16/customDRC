@@ -1,0 +1,128 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "6cb142e9-7dca-4bac-a334-391839193713")
+	(paper "A4")
+	(lib_symbols)
+	(hierarchical_label "BUTTON_4_OUT"
+		(shape output)
+		(at 161.29 83.82 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2143e592-c7ae-480f-a13e-81719f833fe3")
+	)
+	(hierarchical_label "POT_4_OUT"
+		(shape output)
+		(at 121.92 83.82 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4312f036-2f76-4460-951e-38d6bcbdc09c")
+	)
+	(hierarchical_label "BUTTON_2_OUT"
+		(shape output)
+		(at 161.29 78.74 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4c9d181c-f17e-4c3b-a89c-7726bd5ca49d")
+	)
+	(hierarchical_label "POT_1_OUT"
+		(shape output)
+		(at 121.92 76.2 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "6274e213-dd92-43d7-8398-ab038afd9189")
+	)
+	(hierarchical_label "BUTTON_1_OUT"
+		(shape output)
+		(at 161.29 76.2 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "72f5ea01-3027-45d6-8682-b8bac0c1fad3")
+	)
+	(hierarchical_label "POT_3_OUT"
+		(shape output)
+		(at 121.92 81.28 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "88168602-490f-4b62-8ce0-38b91c885d18")
+	)
+	(hierarchical_label "BUTTON_3_OUT"
+		(shape output)
+		(at 161.29 81.28 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8b9b8358-e483-4be3-8f23-be0097b97476")
+	)
+	(hierarchical_label "POT_POWER"
+		(shape input)
+		(at 121.92 73.66 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ae60d779-fa05-4071-8a86-f2e3c1f24483")
+	)
+	(hierarchical_label "BUTTON_POWER"
+		(shape input)
+		(at 161.29 73.66 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b88c2f8c-80cc-45c9-9cf2-aaeee54f853d")
+	)
+	(hierarchical_label "POT_2_OUT"
+		(shape output)
+		(at 121.92 78.74 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "dba49cb6-7726-4fdb-9fbf-659d70c97cd9")
+	)
+)
