@@ -2197,7 +2197,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 92.71 106.68 0)
 			(effects
 				(font
@@ -2224,6 +2224,15 @@
 				(hide yes)
 			)
 		)
+		(property "Manufacturer" ""
+			(at 92.71 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "20a76cab-cabb-4957-a0ef-ab1502835219")
 		)
@@ -2242,15 +2251,15 @@
 	(symbol
 		(lib_id "Diode:SM712_SOT23")
 		(at 189.23 99.06 90)
+		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "142896ab-f488-4677-a492-dbba71044c26")
 		(property "Reference" "D301"
-			(at 186.69 97.7899 90)
+			(at 186.69 100.3301 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2259,7 +2268,7 @@
 			)
 		)
 		(property "Value" "SM712_SOT23"
-			(at 186.69 100.3299 90)
+			(at 186.69 97.7901 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2277,7 +2286,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.littelfuse.com/~/media/electronics/datasheets/tvs_diode_arrays/littelfuse_tvs_diode_array_sm712_datasheet.pdf.pdf"
-			(at 189.23 102.87 0)
+			(at 189.23 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2286,6 +2295,15 @@
 			)
 		)
 		(property "Description" "7V/12V, 600W Asymmetrical TVS Diode Array, SOT-23"
+			(at 189.23 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
 			(at 189.23 99.06 0)
 			(effects
 				(font
@@ -2367,6 +2385,15 @@
 				(hide yes)
 			)
 		)
+		(property "Manufacturer" ""
+			(at 107.95 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "ae5713da-2cf0-44cc-a090-a8a5af5bfd98")
 		)
@@ -2434,6 +2461,15 @@
 				(hide yes)
 			)
 		)
+		(property "Manufacturer" ""
+			(at 204.47 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "c203fc82-99e3-4fdd-9c42-1e11685434c4")
 		)
@@ -2475,7 +2511,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 			(at 57.15 72.39 0)
 			(effects
 				(font
@@ -2494,6 +2530,15 @@
 			)
 		)
 		(property "Description" "Solder Jumper, 2-pole, open"
+			(at 57.15 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
 			(at 57.15 72.39 0)
 			(effects
 				(font
@@ -2637,6 +2682,15 @@
 				(hide yes)
 			)
 		)
+		(property "Manufacturer" ""
+			(at 204.47 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "0d7f7494-a44d-4b7a-8ec9-f016f918b391")
 		)
@@ -2704,6 +2758,15 @@
 				(hide yes)
 			)
 		)
+		(property "Manufacturer" ""
+			(at 95.25 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "c043669d-4e2d-47a7-88a3-38741612b50a")
 		)
@@ -2763,6 +2826,15 @@
 			)
 		)
 		(property "Description" "test point"
+			(at 86.36 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
 			(at 86.36 90.17 0)
 			(effects
 				(font
@@ -2875,7 +2947,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 101.6 85.09 0)
 			(effects
 				(font
@@ -2894,6 +2966,15 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
+			(at 101.6 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
 			(at 101.6 85.09 0)
 			(effects
 				(font
@@ -2988,6 +3069,15 @@
 				(hide yes)
 			)
 		)
+		(property "Manufacturer" ""
+			(at 148.59 100.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "08fa312f-435a-440c-88b8-8aa90571fec8")
 		)
@@ -3031,7 +3121,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 87.63 105.41 0)
 			(effects
 				(font
@@ -3050,6 +3140,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 87.63 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
 			(at 87.63 105.41 0)
 			(effects
 				(font
@@ -3120,6 +3219,15 @@
 			)
 		)
 		(property "Description" "test point"
+			(at 90.17 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
 			(at 90.17 87.63 0)
 			(effects
 				(font
@@ -3262,6 +3370,15 @@
 					(size 1.27 1.27)
 				)
 				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
+			(at 104.14 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
 				(hide yes)
 			)
 		)
@@ -3418,6 +3535,15 @@
 				(hide yes)
 			)
 		)
+		(property "Manufacturer" ""
+			(at 64.77 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "b13dd887-f72e-421a-a29a-cdb25a320fa8")
 		)
@@ -3501,6 +3627,15 @@
 				(hide yes)
 			)
 		)
+		(property "Manufacturer" ""
+			(at 148.59 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "60efcec0-2024-4d8c-9a76-4af8957c473a")
 		)
@@ -3544,7 +3679,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder"
 			(at 166.37 99.06 0)
 			(effects
 				(font
@@ -3563,6 +3698,15 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
+			(at 166.37 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" ""
 			(at 166.37 99.06 0)
 			(effects
 				(font
