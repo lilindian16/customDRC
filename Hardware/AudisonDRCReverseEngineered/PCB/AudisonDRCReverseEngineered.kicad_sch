@@ -5420,12 +5420,6 @@
 		(uuid "22b42bc4-11cd-421c-a35e-9720a7373a3f")
 	)
 	(junction
-		(at 194.31 143.51)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "2785da61-b353-4701-adc9-22d8b7a7900b")
-	)
-	(junction
 		(at 95.25 57.15)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5606,6 +5600,12 @@
 		(uuid "c5e12461-1aae-4301-84c8-3961186c16a4")
 	)
 	(junction
+		(at 194.31 142.24)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d083e1e7-2345-410e-bb55-9c8c8ec8b539")
+	)
+	(junction
 		(at 142.24 82.55)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5646,6 +5646,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "fe485354-907d-4a4b-b8ba-fafb63faa005")
+	)
+	(junction
+		(at 200.66 148.59)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "fe4af99f-54db-4991-b357-b0aa3b0a84c1")
 	)
 	(junction
 		(at 76.2 148.59)
@@ -5728,16 +5734,6 @@
 			(type default)
 		)
 		(uuid "0546d574-bd3f-44db-b086-92b17ee1dcb1")
-	)
-	(wire
-		(pts
-			(xy 194.31 143.51) (xy 194.31 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "056a9ec5-c901-4ef0-8793-0be296b018f0")
 	)
 	(wire
 		(pts
@@ -5858,16 +5854,6 @@
 			(type default)
 		)
 		(uuid "0fbf62ec-db35-45b2-b42a-6419cc236bfb")
-	)
-	(wire
-		(pts
-			(xy 198.12 143.51) (xy 194.31 143.51)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "10782465-9b3f-40ee-83ab-4269f189ed86")
 	)
 	(wire
 		(pts
@@ -6611,7 +6597,7 @@
 	)
 	(wire
 		(pts
-			(xy 198.12 153.67) (xy 207.01 153.67)
+			(xy 200.66 153.67) (xy 207.01 153.67)
 		)
 		(stroke
 			(width 0)
@@ -6828,6 +6814,16 @@
 			(type default)
 		)
 		(uuid "7171405b-1ade-47ab-a129-133e6caec726")
+	)
+	(wire
+		(pts
+			(xy 181.61 151.13) (xy 194.31 151.13)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7228dfc5-dafa-499d-b879-e6f915a3b08b")
 	)
 	(wire
 		(pts
@@ -7261,6 +7257,16 @@
 	)
 	(wire
 		(pts
+			(xy 194.31 142.24) (xy 194.31 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9c1c3df9-c21f-4968-a9dc-c48c8d8998f4")
+	)
+	(wire
+		(pts
 			(xy 114.3 161.29) (xy 114.3 170.18)
 		)
 		(stroke
@@ -7331,7 +7337,7 @@
 	)
 	(wire
 		(pts
-			(xy 198.12 143.51) (xy 198.12 153.67)
+			(xy 200.66 142.24) (xy 200.66 148.59)
 		)
 		(stroke
 			(width 0)
@@ -7368,6 +7374,16 @@
 			(type default)
 		)
 		(uuid "ad4ec818-0a78-48a1-8dc7-a09491f30329")
+	)
+	(wire
+		(pts
+			(xy 200.66 148.59) (xy 200.66 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ad596403-117b-4d65-bcf6-16bd954f39ae")
 	)
 	(wire
 		(pts
@@ -7521,7 +7537,7 @@
 	)
 	(wire
 		(pts
-			(xy 194.31 142.24) (xy 194.31 143.51)
+			(xy 194.31 140.97) (xy 194.31 142.24)
 		)
 		(stroke
 			(width 0)
@@ -7688,16 +7704,6 @@
 			(type default)
 		)
 		(uuid "bfc789c3-55e2-4d0f-81be-925aad9bca10")
-	)
-	(wire
-		(pts
-			(xy 200.66 144.78) (xy 200.66 148.59)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c095f39d-6f6c-4e30-8ad7-670399af4bc1")
 	)
 	(wire
 		(pts
@@ -8431,6 +8437,16 @@
 	)
 	(wire
 		(pts
+			(xy 194.31 142.24) (xy 200.66 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f9fdc884-17b4-4a24-bdec-b27697bdd2ab")
+	)
+	(wire
+		(pts
 			(xy 194.31 151.13) (xy 207.01 151.13)
 		)
 		(stroke
@@ -8884,7 +8900,7 @@
 		(uuid "861fde42-76f5-4f53-93a7-e7c325a695a0")
 	)
 	(label "~{RESET}"
-		(at 200.66 151.13 0)
+		(at 181.61 151.13 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -9600,71 +9616,6 @@
 			(project ""
 				(path "/2bdc53b7-c29d-4ef8-8e2c-89e6e1d74e69"
 					(reference "D3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:VDC")
-		(at 200.66 144.78 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "0fb76cb0-b7a6-4602-b147-04991b7fbfe7")
-		(property "Reference" "#PWR024"
-			(at 200.66 148.59 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "VDC"
-			(at 200.66 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 200.66 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 200.66 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"VDC\""
-			(at 200.66 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "bbca3cb7-5889-4ae2-8ce0-a83ee17d7461")
-		)
-		(instances
-			(project "AudisonDRCReverseEngineered"
-				(path "/2bdc53b7-c29d-4ef8-8e2c-89e6e1d74e69"
-					(reference "#PWR024")
 					(unit 1)
 				)
 			)
@@ -14318,7 +14269,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 194.31 142.24 0)
+		(at 194.31 140.97 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -14327,7 +14278,7 @@
 		(dnp no)
 		(uuid "ea705ad6-c1bf-4b5e-a3cd-8b36a25194a6")
 		(property "Reference" "#PWR026"
-			(at 194.31 146.05 0)
+			(at 194.31 144.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14336,7 +14287,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 194.31 138.684 0)
+			(at 194.31 137.414 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14344,7 +14295,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 194.31 142.24 0)
+			(at 194.31 140.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14353,7 +14304,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 194.31 142.24 0)
+			(at 194.31 140.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -14362,7 +14313,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 194.31 142.24 0)
+			(at 194.31 140.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
