@@ -42,6 +42,42 @@ void AudisonACLink::set_volume(uint8_t volume)
     }
 }
 
+void AudisonACLink::set_balance(uint8_t balance_level)
+{
+    if (balance_level <= 0x24)
+    {
+        uint8_t balance_adjust_packet[2] = {BALANCE_ADJUST, balance_level};
+        this->write_to_audison_bus(AUDISON_DSP_RS485_ADDRESS,
+                                   AUDISON_DRC_RS485_ADDRESS,
+                                   (uint8_t *)balance_adjust_packet,
+                                   sizeof(balance_adjust_packet));
+    }
+}
+
+void AudisonACLink::set_fader(uint8_t fade_level)
+{
+    if (fade_level <= 0x24)
+    {
+        uint8_t fader_adjust_packet[2] = {FADER_ADJUST, fade_level};
+        this->write_to_audison_bus(AUDISON_DSP_RS485_ADDRESS,
+                                   AUDISON_DRC_RS485_ADDRESS,
+                                   (uint8_t *)fader_adjust_packet,
+                                   sizeof(fader_adjust_packet));
+    }
+}
+
+void AudisonACLink::set_sub_volume(uint8_t sub_volume)
+{
+    if (sub_volume <= 0x18)
+    {
+        uint8_t sub_volume_adjust_packet[2] = {SUB_VOLUME_ADJUST, sub_volume};
+        this->write_to_audison_bus(AUDISON_DSP_RS485_ADDRESS,
+                                   AUDISON_DRC_RS485_ADDRESS,
+                                   (uint8_t *)sub_volume_adjust_packet,
+                                   sizeof(sub_volume_adjust_packet));
+    }
+}
+
 void AudisonACLink::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t *data, uint8_t data_length)
 {
     uint8_t message_length = HEADER_SIZE_BYTES + data_length + CHECKSUM_SIZE_BYTES;
@@ -84,4 +120,61 @@ uint8_t AudisonACLink::calculate_checksum(uint8_t *data_buffer, uint8_t data_len
     }
     uint8_t checksum = byte_sum % 256;
     return checksum;
+}
+
+uint8_t AudisonACLink::read_rx_message(uint8_t *data_buffer, uint8_t buffer_length)
+{
+    uint8_t bytes_to_read = rs485_serial_port.available();
+    if (bytes_to_read)
+    {
+        uint8_t message_index = 0;
+        bool message_completed = false;
+        bool transmitter_address_found = false;
+        bool message_length_found = false;
+        uint8_t total_message_length = 0;
+        uint8_t rx_data_buffer[255];
+
+        while (!message_completed)
+        {
+            if (rs485_serial_port.available())
+            {
+                uint8_t data = rs485_serial_port.read();
+                if (!transmitter_address_found && rs485_serial_port.readParity() == true)
+                {
+                    rx_data_buffer[message_index] = data; // We have the transmitter address
+                    transmitter_address_found = true;
+                }
+                else if (transmitter_address_found) // We are receiving a message
+                {
+                    message_index++;
+                    rx_data_buffer[message_index] = data;
+                    if (!message_length_found && message_index == 3) // The total length of message
+                    {
+                        message_length_found = true;
+                        total_message_length = data;
+                    }
+                    else if (message_length_found && message_index == total_message_length - 1) // Message complete
+                    {
+                        if (buffer_length >= total_message_length)
+                        {
+                            memcpy(data_buffer, rx_data_buffer, total_message_length);
+                            message_completed = true;
+                        }
+                    }
+                }
+            }
+
+            else
+            {
+                delay(100);
+            }
+        }
+
+        return total_message_length;
+    }
+
+    else
+    {
+        return 0;
+    }
 }
