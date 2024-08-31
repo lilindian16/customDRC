@@ -12,3 +12,7 @@ These are the required steps for the project:
 ## RS485 Packet Capture and Decoding
 The following Google Doc outlines the packets transmitted and received by the DRC
 https://docs.google.com/document/d/1xm5VXMs9jcL1oQyPIb4WubiSsU_rn1Bk5Yaru9MKfjI/edit?usp=sharing
+
+## Hardware Report for the Custom DRC (CDRC) PCB
+The following Google Doc is a HW report for the PCB. This includes a BOM and pinout diagram
+https://docs.google.com/spreadsheets/d/1yKb0Uep4GiwMZgCa3Em3xfYRrIc_w2GCmBEI8sHW7xg/edit?usp=sharing
