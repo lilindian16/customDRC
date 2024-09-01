@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>Custom DRC Config</title>
+</head>
+
+<body>
+    <main class="container">
+        <h1>Audison Custom DRC (CDRC)</h1>
+        <form action="">
+            <fieldset role="group">
+                <input type="password" name="password" placeholder="Password" aria-label="Password">
+                <button>Enter</button>
+            </fieldset>
+        </form>
+        </div>
+
+        <select name="Memory Select" aria-label="Select DSP Memory..." required>
+            <option selected disabled value="">
+                Select DSP Memory...
+            </option>
+            <option>A</option>
+            <option>B</option>
+        </select>
+
+        <select name="Input Select" aria-label="Select your input..." required>
+            <option selected disabled value="">
+                Select your input...
+            </option>
+            <option>Master</option>
+            <option>Aux</option>
+            <option>Phone</option>
+        </select>
+
+        <fieldset>
+            <label>
+                <input name="Mute" type="checkbox" role="switch" />
+                Mute
+            </label>
+        </fieldset>
+
+        <!-- Control Inputs -->
+        <label>
+            Master Volume
+            <input type="range" />
+        </label>
+        <label>
+            Sub. Volume
+            <input type="range" />
+        </label>
+        <label>
+            Balance
+            <input type="range" />
+        </label>
+        <label>
+            Fader
+            <input type="range" />
+        </label>
+
+        <!-- Write Config to DSP -->
+        <label>
+            Write Settings to DSP
+            <input type="submit" value="Write to DSP">
+        </label>
+
+        <!-- Webpage Password Update -->
+        <label>
+            Update Webpage Password
+            <fieldset role="group">
+                <input type="password" placeholder="Enter New Password" aria-label="Enter New Password">
+                <input type="submit" value="Update Password" disabled>
+            </fieldset>
+        </label>
+
+        <!-- OTA File Upload -->
+        <label>
+            OTA File Upload
+            <fieldset role="group">
+                <input type="file">
+                <input type="submit" value="Upload" disabled />
+            </fieldset>
+        </label>
+    </main>
+</body>
+
+</html>
