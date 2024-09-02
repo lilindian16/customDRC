@@ -13,8 +13,11 @@
 
   <body>
     <main class="container">
-      <h1>Audison Custom DRC (CDRC)</h1>
-      <div class="container">
+      <fieldset role="group">
+        <h1>Audison Custom DRC (CDRC)</h1>
+        <button id="quitButton" style="display: none">Quit</button>
+      </fieldset>
+      <section id="passwordEntrySection">
         <form>
           <fieldset role="group">
             <input
@@ -27,85 +30,92 @@
             <button id="submitPasswordButton" type="button">Enter</button>
           </fieldset>
         </form>
-      </div>
+      </section>
 
-      <div class="container" id="mainBody">
-        <!-- DSP Memory Select -->
-        <fieldset>
-          <legend>DSP Memory Select:</legend>
-          <input type="radio" id="DSPMemA" name="DSP-Memory" checked />
-          <label htmlFor="DSPMemA">A</label>
-          <input type="radio" id="DSPMemB" name="DSP-Memory" />
-          <label htmlFor="DSPMemB">B</label>
-        </fieldset>
+      <div class="container" id="mainBody" style="display: none">
+        <section>
+          <!-- DSP Memory Select -->
+          <fieldset>
+            <legend>DSP Memory Select:</legend>
+            <input type="radio" id="DSPMemA" name="DSP-Memory" checked />
+            <label htmlFor="DSPMemA">A</label>
+            <input type="radio" id="DSPMemB" name="DSP-Memory" />
+            <label htmlFor="DSPMemB">B</label>
+          </fieldset>
 
-        <!-- Input Select -->
-        <fieldset>
-          <legend>Input Select:</legend>
-          <input type="radio" id="InputMaster" name="InputSelect" checked />
-          <label htmlFor="InputMaster">Master</label>
-          <input type="radio" id="InputAux" name="InputSelect" />
-          <label htmlFor="InputAux">AUX</label>
-          <input type="radio" id="InputPhone" name="InputSelect" />
-          <label htmlFor="InputPhone">Phone</label>
-        </fieldset>
+          <!-- Input Select -->
+          <fieldset>
+            <legend>Input Select:</legend>
+            <input type="radio" id="InputMaster" name="InputSelect" checked />
+            <label htmlFor="InputMaster">Master</label>
+            <input type="radio" id="InputAux" name="InputSelect" />
+            <label htmlFor="InputAux">AUX</label>
+            <input type="radio" id="InputPhone" name="InputSelect" />
+            <label htmlFor="InputPhone">Phone</label>
+          </fieldset>
 
-        <fieldset>
-          <label>
-            <input name="Mute" type="checkbox" role="switch" />
-            Mute
-          </label>
-        </fieldset>
+          <!-- Mute Switch -->
+          <fieldset>
+            <label>
+              <input name="Mute" type="checkbox" role="switch" />
+              Mute
+            </label>
+          </fieldset>
+        </section>
 
         <!-- Control Inputs -->
+        <section>
+          <label for="masterVolume"
+            >Master Volume: <span id="masterVolumeValue"></span
+          ></label>
+          <input id="masterVolume" type="range" min="0" max="120" step="1" />
 
-        <label for="masterVolume">Master Volume</label>
-        <input
-          id="masterVolume"
-          type="range"
-          min="0"
-          max="120"
-          step="1"
-          list="priorities"
-        />
+          <label for="subVolume"
+            >Sub. Volume: <span id="subVolumeValue"></span
+          ></label>
+          <input id="subVolume" type="range" min="0" max="24" step="0.5" />
 
-        <label for="subVolume">Sub. Volume</label>
-        <input id="subVolume" type="range" min="0" max="24" step="0.5" />
+          <label for="balance">Balance: <span id="balanceValue"></span></label>
+          <input id="balance" type="range" min="0" max="36" step="1" />
 
-        <label for="balance">Balance</label>
-        <input id="balance" type="range" min="0" max="36" step="1" />
-
-        <label for="fader">Fader</label>
-        <input id="fader" type="range" min="0" max="36" step="1" />
+          <label for="fader">Fader: <span id="faderValue"></span></label>
+          <input id="fader" type="range" min="0" max="36" step="1" />
+        </section>
 
         <!-- Write Config to DSP -->
-        <label>
-          Write Settings to DSP
-          <input type="button" value="Write to DSP" disabled />
-        </label>
+        <section style="display: none">
+          <label>
+            Write Settings to DSP
+            <input type="button" value="Write to DSP" disabled />
+          </label>
+        </section>
 
         <!-- Webpage Password Update -->
-        <label>
-          Update Webpage Password
-          <fieldset role="group">
-            <input
-              type="password"
-              placeholder="Enter New Password"
-              aria-label="Enter New Password"
-              disabled
-            />
-            <input type="button" value="Update Password" disabled />
-          </fieldset>
-        </label>
+        <section>
+          <label>
+            Update Webpage Password
+            <fieldset role="group">
+              <input
+                type="password"
+                placeholder="Enter New Password"
+                aria-label="Enter New Password"
+                disabled
+              />
+              <input type="button" value="Update Password" disabled />
+            </fieldset>
+          </label>
+        </section>
 
         <!-- OTA Update File Upload -->
-        <label>
-          OTA Update File Upload
-          <fieldset role="group">
-            <input type="file" disabled />
-            <input type="button" value="Upload" disabled />
-          </fieldset>
-        </label>
+        <section>
+          <label>
+            OTA Update File Upload
+            <fieldset role="group">
+              <input type="file" disabled />
+              <input type="button" value="Upload" disabled />
+            </fieldset>
+          </label>
+        </section>
       </div>
 
       <footer>
