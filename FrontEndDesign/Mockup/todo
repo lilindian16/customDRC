@@ -1,0 +1,11 @@
+Add Filter Settings Page
+Add modal for upload OTA update file to confirm. Possibly add modal to other buttons
+Add channel volume control
+Add channel mute
+Add full band eq
+Set driver position
+Add reset config button
+
+Better auth system since right now we can just open console and unhide main window
+
+Note - all commands will need to be reverse engineered r.e. protocol on RS485 bus

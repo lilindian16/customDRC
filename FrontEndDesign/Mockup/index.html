@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <title>Custom DRC Config</title>
+  </head>
+
+  <body>
+    <main class="container">
+      <h1>Audison Custom DRC (CDRC)</h1>
+      <div class="container">
+        <form>
+          <fieldset role="group">
+            <input
+              type="password"
+              id="passwordEntry"
+              name="password"
+              placeholder="Password"
+              aria-label="Password"
+            />
+            <button id="submitPasswordButton" type="button">Enter</button>
+          </fieldset>
+        </form>
+      </div>
+
+      <div class="container" id="mainBody">
+        <!-- DSP Memory Select -->
+        <fieldset>
+          <legend>DSP Memory Select:</legend>
+          <input type="radio" id="DSPMemA" name="DSP-Memory" checked />
+          <label htmlFor="DSPMemA">A</label>
+          <input type="radio" id="DSPMemB" name="DSP-Memory" />
+          <label htmlFor="DSPMemB">B</label>
+        </fieldset>
+
+        <!-- Input Select -->
+        <fieldset>
+          <legend>Input Select:</legend>
+          <input type="radio" id="InputMaster" name="InputSelect" checked />
+          <label htmlFor="InputMaster">Master</label>
+          <input type="radio" id="InputAux" name="InputSelect" />
+          <label htmlFor="InputAux">AUX</label>
+          <input type="radio" id="InputPhone" name="InputSelect" />
+          <label htmlFor="InputPhone">Phone</label>
+        </fieldset>
+
+        <fieldset>
+          <label>
+            <input name="Mute" type="checkbox" role="switch" />
+            Mute
+          </label>
+        </fieldset>
+
+        <!-- Control Inputs -->
+
+        <label for="masterVolume">Master Volume</label>
+        <input
+          id="masterVolume"
+          type="range"
+          min="0"
+          max="120"
+          step="1"
+          list="priorities"
+        />
+
+        <label for="subVolume">Sub. Volume</label>
+        <input id="subVolume" type="range" min="0" max="24" step="0.5" />
+
+        <label for="balance">Balance</label>
+        <input id="balance" type="range" min="0" max="36" step="1" />
+
+        <label for="fader">Fader</label>
+        <input id="fader" type="range" min="0" max="36" step="1" />
+
+        <!-- Write Config to DSP -->
+        <label>
+          Write Settings to DSP
+          <input type="button" value="Write to DSP" disabled />
+        </label>
+
+        <!-- Webpage Password Update -->
+        <label>
+          Update Webpage Password
+          <fieldset role="group">
+            <input
+              type="password"
+              placeholder="Enter New Password"
+              aria-label="Enter New Password"
+              disabled
+            />
+            <input type="button" value="Update Password" disabled />
+          </fieldset>
+        </label>
+
+        <!-- OTA Update File Upload -->
+        <label>
+          OTA Update File Upload
+          <fieldset role="group">
+            <input type="file" disabled />
+            <input type="button" value="Upload" disabled />
+          </fieldset>
+        </label>
+      </div>
+
+      <footer>
+        <small
+          >Built with <a href="https://picocss.com">PicoCSS</a> •
+          <a href="https://github.com/lilindian16/audisonCustomDRC"
+            >CDRC Source Code</a
+          >
+        </small>
+      </footer>
+    </main>
+    <script src="index.js"></script>
+  </body>
+</html>
