@@ -9,3 +9,6 @@ Add reset config button
 Better auth system since right now we can just open console and unhide main window
 
 Note - all commands will need to be reverse engineered r.e. protocol on RS485 bus
+
+Note - for supporting OTA, we want the HTML/CSS/JS to be stored in the FW file itself. This means
+we won't have to update the SPIFFS partition in the case of an updated layout / interface
