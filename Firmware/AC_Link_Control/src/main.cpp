@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <AudisonACLink.hpp>
+#include <CDRCWebServer.hpp>
 
 #define RS485_TX_PIN 15
 #define RS485_RX_PIN 5
@@ -22,6 +23,8 @@ void setup(void)
   ac_link.init_ac_link_bus(&rs485_config);
 
   memset(rx_buffer, 0, sizeof(rx_buffer)); // Clear the rx buffer
+
+  web_server_init();
 }
 
 void loop(void)
@@ -40,7 +43,7 @@ void loop(void)
   uint8_t bytes_read = ac_link.read_rx_message(rx_buffer, sizeof(rx_buffer));
   if (bytes_read > 0)
   {
-    if (rx_buffer[1] == 0x80) // Filter DRC messages
+    if (rx_buffer[1] == AUDISON_DRC_RS485_ADDRESS) // Filter DRC messages
     {
       for (uint8_t i = 0; i < bytes_read; i++)
       {
@@ -51,6 +54,6 @@ void loop(void)
     }
     memset(rx_buffer, 0, sizeof(rx_buffer)); // Clear the buffer
   }
-  delay(50);
+  vTaskDelay(pdMS_TO_TICKS(50));
 #endif
 }
