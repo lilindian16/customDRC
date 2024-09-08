@@ -23,9 +23,17 @@ let fader_range = document.getElementById("fader");
 /* Define global file constants here */
 const WEBSOCKET_RECONNECT_WAIT_SECONDS = 2;
 const MASTER_VOLUME_STARTING_VALUE = 0;
+const MASTER_VOLUME_MAX_VALUE = 120;
+const MASTER_VOLUME_MIN_VALUE = 0;
 const SUB_VOLUME_STARTING_VALUE = 0;
+const SUB_VOLUME_MAX_VALUE = 24;
+const SUB_VOLUME_MIN_VALUE = 0;
 const BALANCE_STARTING_VALUE = 18;
+const BALANCE_MAX_VALUE = 36;
+const BALANCE_MIN_VALUE = 0;
 const FADER_STARTING_VALUE = 18;
+const FADER_MAX_VALUE = 36;
+const FADER_MIN_VALUE = 0;
 /* End global constant defines
 
 /* Define Websocket callback functions */
@@ -114,7 +122,7 @@ function get_remote_settings() {
 
 function send_password_auth() {
   var password = document.getElementById("passwordEntry").value;
-  var message = `{password: ${password}}`;
+  var message = `{password: "${password}"}`;
   console.log(message);
   websocket.send(message);
 
