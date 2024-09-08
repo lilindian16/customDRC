@@ -34,27 +34,45 @@
           <!-- DSP Memory Select -->
           <fieldset>
             <legend>DSP Memory Select:</legend>
-            <input type="radio" id="DSPMemA" name="DSP-Memory" checked />
+            <input
+              type="radio"
+              id="DSPMemA"
+              value="0"
+              name="dspMemory"
+              checked
+            />
             <label htmlFor="DSPMemA">A</label>
-            <input type="radio" id="DSPMemB" name="DSP-Memory" />
+            <input type="radio" id="DSPMemB" value="1" name="dspMemory" />
             <label htmlFor="DSPMemB">B</label>
           </fieldset>
 
           <!-- Input Select -->
           <fieldset>
             <legend>Input Select:</legend>
-            <input type="radio" id="InputMaster" name="InputSelect" checked />
+            <input
+              type="radio"
+              id="InputMaster"
+              value="0"
+              name="inputSelect"
+              checked
+            />
             <label htmlFor="InputMaster">Master</label>
-            <input type="radio" id="InputAux" name="InputSelect" />
+            <input type="radio" id="InputAux" value="1" name="inputSelect" />
             <label htmlFor="InputAux">AUX</label>
-            <input type="radio" id="InputPhone" name="InputSelect" />
+            <input type="radio" id="InputPhone" value="2" name="inputSelect" />
             <label htmlFor="InputPhone">Phone</label>
           </fieldset>
 
           <!-- Mute Switch -->
           <fieldset>
             <label>
-              <input name="Mute" type="checkbox" role="switch" />
+              <input
+                name="Mute"
+                type="checkbox"
+                role="switch"
+                ,
+                id="mute_switch"
+              />
               Mute
             </label>
           </fieldset>

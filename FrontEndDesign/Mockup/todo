@@ -5,6 +5,8 @@ Add channel mute
 Add full band eq
 Set driver position
 Add reset config button
+Add config options for what each encoder controls
+Add config options for what encoder sw does (single, double, hold)
 
 Better auth system since right now we can just open console and unhide main window
 
