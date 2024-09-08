@@ -24,13 +24,73 @@ AsyncWebServer server(80);
 // Create a WebSocket object
 AsyncWebSocket web_socket_handle("/ws");
 
+void handle_json_key_value(JsonPair key_value)
+{
+    if (strcmp(key_value.key().c_str(), "getRemoteSettings") == 0)
+    {
+        Serial.println("*WS* Webpage loaded. Get settings");
+    }
+    else if (strcmp(key_value.key().c_str(), "dspMemory") == 0)
+    {
+        uint8_t dspMemoryValue = key_value.value();
+        Serial.printf("*WS* dspMemory: %d\n", dspMemoryValue);
+    }
+    else if (strcmp(key_value.key().c_str(), "inputSelect") == 0)
+    {
+        uint8_t inputSelectValue = key_value.value();
+        Serial.printf("*WS* inputSelect: %d\n", inputSelectValue);
+    }
+    else if (strcmp(key_value.key().c_str(), "mute") == 0)
+    {
+        uint8_t muteValue = key_value.value();
+        Serial.printf("*WS* mute: %d\n", muteValue);
+    }
+    else if (strcmp(key_value.key().c_str(), "masterVolume") == 0)
+    {
+        uint8_t master_volume_value = key_value.value();
+        Serial.printf("*WS* masterVolume: %d\n", master_volume_value);
+    }
+    else if (strcmp(key_value.key().c_str(), "subVolume") == 0)
+    {
+        uint8_t sub_volume_value = key_value.value();
+        Serial.printf("*WS* subVolume: %d\n", sub_volume_value);
+    }
+    else if (strcmp(key_value.key().c_str(), "balance") == 0)
+    {
+        uint8_t balance_value = key_value.value();
+        Serial.printf("*WS* balance: %d\n", balance_value);
+    }
+    else if (strcmp(key_value.key().c_str(), "fader") == 0)
+    {
+        uint8_t fader_value = key_value.value();
+        Serial.printf("*WS* fader: %d\n", fader_value);
+    }
+    else
+    {
+        Serial.println("Unknown JSON format key value pair");
+    }
+}
+
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 {
     AwsFrameInfo *info = (AwsFrameInfo *)arg;
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT)
     {
         data[len] = '\0';
-        Serial.printf("WS Message Rec: %s\n", data);
+        // Serial.printf("WS Message Rec: %s\n", data);
+        JsonDocument doc;                                        // Allocate the JSON document
+        DeserializationError error = deserializeJson(doc, data); // Parse JSON object
+        if (error == DeserializationError::Ok)
+        {
+            for (JsonPair kv : doc.as<JsonObject>())
+            {
+                handle_json_key_value(kv);
+            }
+        }
+        else
+        {
+            Serial.println("Error parsing JSON");
+        }
     }
 }
 
