@@ -30,6 +30,11 @@ void handle_json_key_value(JsonPair key_value)
     {
         Serial.println("*WS* Webpage loaded. Get settings");
     }
+    else if (strcmp(key_value.key().c_str(), "password") == 0)
+    {
+        String password = key_value.value();
+        Serial.printf("*WS* password: %s\n", password.c_str());
+    }
     else if (strcmp(key_value.key().c_str(), "dspMemory") == 0)
     {
         uint8_t dspMemoryValue = key_value.value();
