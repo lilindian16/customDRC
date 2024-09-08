@@ -15,8 +15,6 @@
 
 #define HEADER_SIZE_BYTES 4
 #define CHECKSUM_SIZE_BYTES 1
-#define AUDISON_DSP_RS485_ADDRESS 0x00
-#define AUDISON_DRC_RS485_ADDRESS 0x80
 
 EspSoftwareSerial::UART rs485_serial_port;
 
@@ -166,7 +164,7 @@ uint8_t AudisonACLink::read_rx_message(uint8_t *data_buffer, uint8_t buffer_leng
 
             else
             {
-                delay(100);
+                vTaskDelay(pdMS_TO_TICKS(100));
             }
         }
 

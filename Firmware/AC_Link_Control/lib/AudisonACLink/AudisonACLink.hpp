@@ -13,6 +13,9 @@
 
 #include <stdint.h>
 
+#define AUDISON_DSP_RS485_ADDRESS 0x00
+#define AUDISON_DRC_RS485_ADDRESS 0x80
+
 typedef struct
 {
     int rs485_tx_pin;
