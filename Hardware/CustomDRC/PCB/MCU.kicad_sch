@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "CDRC - Custom DRC for Audison AC Link")
-		(date "2024-08-20")
+		(date "03-09-2024")
 		(rev "A")
 		(company "JS HW")
 	)
@@ -3265,7 +3265,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "LED_Small"
+		(property "Value" "WHITE OR BLUE"
 			(at 170.18 134.5564 90)
 			(effects
 				(font
@@ -3310,7 +3310,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" " KT-0603W"
+		(property "MPN" "KT-0603W"
 			(at 167.64 133.35 0)
 			(effects
 				(font

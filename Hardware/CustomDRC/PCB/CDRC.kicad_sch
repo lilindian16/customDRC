@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "CDRC - Custom DRC for Audison AC Link")
-		(date "2024-08-20")
+		(date "03-09-2024")
 		(rev "A")
 		(company "JS HW")
 	)
@@ -1119,6 +1119,27 @@
 		)
 		(uuid "f3b904bd-1198-4057-9f21-8387ad68ce0c")
 	)
+	(text_box "REVISION HISTORY:\n\nA: Initial design"
+		(exclude_from_sim no)
+		(at 177.546 139.7 0)
+		(size 101.6 20.828)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(fill
+			(type none)
+		)
+		(effects
+			(font
+				(size 2 2)
+				(thickness 0.4)
+				(bold yes)
+			)
+			(justify left top)
+		)
+		(uuid "f0a8cff5-3b97-4090-ad5c-1be83822e555")
+	)
 	(text "MCU"
 		(exclude_from_sim no)
 		(at 152.4 91.44 0)
@@ -1230,7 +1251,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" " C18905866"
+		(property "LCSC" "C7501615"
 			(at 36.83 83.82 0)
 			(effects
 				(font
@@ -1239,7 +1260,7 @@
 				(hide yes)
 			)
 		)
-		(property "Manufacturer" " chxunda"
+		(property "Manufacturer" "XUNPU"
 			(at 36.83 83.82 0)
 			(effects
 				(font
@@ -1248,7 +1269,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "XDZ254-1-06-W-2.5-G1"
+		(property "MPN" "PH2.54-07-06PWD"
 			(at 36.83 83.82 0)
 			(effects
 				(font
