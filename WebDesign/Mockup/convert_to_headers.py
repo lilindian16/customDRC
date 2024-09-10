@@ -15,7 +15,7 @@ class FileConverter:
         self.current_path = current_path
         self.filename = filename
         self.input_file_path = self.current_path + "/" + self.filename
-        self.output_directory = self.current_path + "/customDRC_header_files/"
+        self.output_directory = self.current_path + "/CDRC_headers/"
 
         print(f"Path: {self.current_path}")
         print(f"Filename: {self.filename}")
