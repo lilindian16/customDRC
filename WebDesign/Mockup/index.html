@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" type="text/css" href="pico.min.css" />
+    <title>Custom DRC Config</title>
+  </head>
+
+  <body>
+    <main class="container">
+      <fieldset role="group">
+        <h1>Custom DRC (CDRC)</h1>
+        <button id="quitButton" style="display: none">Quit</button>
+      </fieldset>
+      <section id="passwordEntrySection">
+        <form>
+          <fieldset role="group">
+            <input
+              type="password"
+              id="passwordEntry"
+              name="password"
+              placeholder="Password"
+              aria-label="Password"
+            />
+            <button id="submitPasswordButton" type="button">Enter</button>
+          </fieldset>
+        </form>
+      </section>
+
+      <div class="container" id="mainBody" style="display: none">
+        <section>
+          <!-- DSP Memory Select -->
+          <fieldset>
+            <legend>DSP Memory Select:</legend>
+            <input
+              type="radio"
+              id="DSPMemA"
+              value="0"
+              name="dspMemory"
+              checked
+            />
+            <label htmlFor="DSPMemA">A</label>
+            <input type="radio" id="DSPMemB" value="1" name="dspMemory" />
+            <label htmlFor="DSPMemB">B</label>
+          </fieldset>
+
+          <!-- Input Select -->
+          <fieldset>
+            <legend>Input Select:</legend>
+            <input
+              type="radio"
+              id="InputMaster"
+              value="0"
+              name="inputSelect"
+              checked
+            />
+            <label htmlFor="InputMaster">Master</label>
+            <input type="radio" id="InputAux" value="1" name="inputSelect" />
+            <label htmlFor="InputAux">AUX</label>
+            <input type="radio" id="InputPhone" value="2" name="inputSelect" />
+            <label htmlFor="InputPhone">Phone</label>
+          </fieldset>
+
+          <!-- Mute Switch -->
+          <fieldset>
+            <label>
+              <input
+                name="Mute"
+                type="checkbox"
+                role="switch"
+                ,
+                id="mute_switch"
+              />
+              Mute
+            </label>
+          </fieldset>
+        </section>
+
+        <!-- Control Inputs -->
+        <section>
+          <label for="masterVolume"
+            >Master Volume: <span id="masterVolumeValue"></span
+          ></label>
+          <input id="masterVolume" type="range" min="0" max="120" step="1" />
+
+          <label for="subVolume"
+            >Sub. Volume: <span id="subVolumeValue"></span
+          ></label>
+          <input id="subVolume" type="range" min="0" max="24" step="1" />
+
+          <label for="balance">Balance: <span id="balanceValue"></span></label>
+          <input id="balance" type="range" min="0" max="36" step="1" />
+
+          <label for="fader">Fader: <span id="faderValue"></span></label>
+          <input id="fader" type="range" min="0" max="36" step="1" />
+        </section>
+
+        <!-- Write Config to DSP -->
+        <section style="display: none">
+          <label>
+            Write Settings to DSP
+            <input type="button" value="Write to DSP" disabled />
+          </label>
+        </section>
+
+        <!-- Webpage Password Update -->
+        <section>
+          <label>
+            Update Webpage Password
+            <fieldset role="group">
+              <input
+                type="password"
+                placeholder="Enter New Password"
+                aria-label="Enter New Password"
+                disabled
+              />
+              <input type="button" value="Update Password" disabled />
+            </fieldset>
+          </label>
+        </section>
+
+        <!-- OTA Update File Upload -->
+        <section>
+          <label>
+            OTA Update File Upload
+            <fieldset role="group">
+              <input type="file" disabled />
+              <input type="button" value="Upload" disabled />
+            </fieldset>
+          </label>
+        </section>
+      </div>
+
+      <footer>
+        <small
+          >Built with <a href="https://picocss.com">PicoCSS</a> •
+          <a href="https://github.com/lilindian16/audisonCustomDRC"
+            >CDRC Source Code</a
+          >
+        </small>
+      </footer>
+    </main>
+    <script src="index.js" type="text/javascript"></script>
+  </body>
+</html>
