@@ -23,7 +23,10 @@ https://docs.google.com/spreadsheets/d/1yKb0Uep4GiwMZgCa3Em3xfYRrIc_w2GCmBEI8sHW
 
 ## Web Interface for CDRC
 
-![CDRC Web Interface - iPad Pro](Images/CDRC_webpage_iPadPro.png)
-_CDRC Web Interface - iPad Pro_
-![CDRC Web Interface - iPhone 12 Pro](Images/CDRC_webpage_iphone12pro.png)
-_CDRC Web Interface - iPhone 12 Pro_
+| ![CDRC Web Interface - iPad Pro](Images/CDRC_webpage_iPadPro.png) |
+| :---------------------------------------------------------------: |
+|                  _CDRC Web Interface - iPad Pro_                  |
+
+| ![CDRC Web Interface - iPhone 12 Pro](Images/CDRC_webpage_iphone12pro.png) |
+| :------------------------------------------------------------------------: |
+|                    _CDRC Web Interface - iPhone 12 Pro_                    |
