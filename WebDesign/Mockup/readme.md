@@ -1,6 +1,6 @@
 # Custom DRC - Web Design
 
-![Custom DRC Web Page mainpage](../ConceptImages/CDRC_mainpage.png)
+![Custom DRC Web Page mainpage](../../Images/CDRC_mainpage.png)
 
 I am by no means a software developer. I use VSCode with the [Live Server extension](https://github.com/ritwickdey/vscode-live-server-plus-plus) installed and enabled. This lets me run a local server and observe changes to the web interface in real time.
 
