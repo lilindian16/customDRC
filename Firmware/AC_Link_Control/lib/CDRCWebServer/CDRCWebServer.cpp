@@ -8,6 +8,7 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
 #include <ArduinoJson.h>
+#include <Update.h>
 
 /* Put your SSID & Password */
 const char *ssid = "Custom-DRC"; // Enter SSID here
@@ -130,6 +131,57 @@ void notFound(AsyncWebServerRequest *request)
     request->send(404, "text/plain", "Not found");
 }
 
+// handles uploads
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+{
+    String logmessage = "Client:" + request->client()->remoteIP().toString() + " " + request->url();
+    Serial.println(logmessage);
+
+    if (!index)
+    {
+        logmessage = "Upload Start: " + String(filename);
+        // open the file on first call and store the file handle in the request object
+        // request->_tempFile = SPIFFS.open("/" + filename, "w");
+        if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH))
+        {
+            Update.printError(Serial);
+        }
+        Serial.println(logmessage);
+    }
+
+    if (len)
+    {
+        // stream the incoming chunk to the opened file
+        // request->_tempFile.write(data, len);
+        logmessage = "Writing file: " + String(filename) + " index=" + String(index) + " len=" + String(len);
+        Serial.println(logmessage);
+        if (Update.write(data, len) != len)
+        {
+            Update.printError(Serial);
+            Serial.printf("Progress: %d%%\n", (Update.progress() * 100) / Update.size());
+        }
+    }
+
+    if (final)
+    {
+        logmessage = "Upload Complete: " + String(filename) + ",size: " + String(index + len);
+        // close the file handle as the upload is now done
+        // request->_tempFile.close();
+        Serial.println(logmessage);
+        if (!Update.end(true))
+        {
+            Update.printError(Serial);
+        }
+        else
+        {
+            Serial.println("Update complete - rebooting in 5 seconds");
+            vTaskDelay(pdMS_TO_TICKS(5000));
+            Serial.flush();
+            ESP.restart();
+        }
+    }
+}
+
 void web_server_init()
 {
     WiFi.softAP(ssid, password);
@@ -146,6 +198,10 @@ void web_server_init()
 
     server.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send_P(200, "text/js", (const uint8_t *)custom_js, sizeof(custom_js), nullptr); });
+
+    // run handleUpload function when any file is uploaded
+    server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request)
+              { request->send(200); }, handleUpload);
 
     server.begin();
     Serial.println("HTTP server started");
