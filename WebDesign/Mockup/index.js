@@ -12,6 +12,10 @@ let quit_button = document.getElementById("quitButton");
 let password_submit_button = document.getElementById("submitPasswordButton");
 let mute_switch = document.getElementById("mute_switch");
 let input_select_radio = document.getElementsByName("InputSelect");
+let ota_file_upload_button = document.getElementById("upload_ota_file_button");
+let ota_file_upload_progress_bar = document.getElementById(
+  "ota_file_upload_progress"
+);
 
 // Range values
 let master_volume_range = document.getElementById("masterVolume");
@@ -79,12 +83,49 @@ function on_mute_switch_change() {
   console.log(ws_message);
 }
 
+function on_ota_file_upload_button_clicked(event) {
+  // We have to intercept the form submit action to avoid page refresh
+  let selected_file = document.getElementById("ota_file");
+  var file_name = selected_file.files[0].name;
+  console.log(file_name);
+  var file1Size = selected_file.files[0].size;
+  console.log(`OTA file size: ${file1Size}`);
+
+  if (file_name.includes(".bin")) {
+    console.log("We have a binary file I believe");
+    var url = "/upload";
+    var request = new XMLHttpRequest();
+    request.open("POST", url, true);
+    request.onload = function () {};
+    request.onerror = function () {
+      console.log("Failed to create the /upload request");
+    };
+    request.upload.addEventListener("progress", function (e) {
+      if (e.loaded <= file1Size) {
+        var percent = Math.round((e.loaded / file1Size) * 100);
+        ota_file_upload_progress_bar.value = percent;
+      }
+      if (e.loaded == e.total) {
+        ota_file_upload_progress_bar.value = 100;
+      }
+    });
+    request.send(new FormData(event.target)); // create FormData from form that triggered event
+    ota_file_upload_progress_bar.style.display = "block";
+  } else {
+    console.log("We do not have a binary file");
+  }
+  event.preventDefault();
+}
+
 // Function to be called when the window is opened
 function onload(event) {
   initWebSocket();
   init_range_inputs();
   password_submit_button.addEventListener("click", send_password_auth);
   mute_switch.addEventListener("change", on_mute_switch_change);
+  document
+    .getElementById("ota_form")
+    .addEventListener("submit", on_ota_file_upload_button_clicked);
 
   document.getElementsByName("dspMemory").forEach(function (e) {
     e.addEventListener("click", function () {

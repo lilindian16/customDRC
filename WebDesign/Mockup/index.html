@@ -11,7 +11,7 @@
   <body>
     <main class="container">
       <fieldset role="group">
-        <h1>Custom DRC (CDRC)</h1>
+        <h1>Custom DRC</h1>
         <button id="quitButton" style="display: none">Quit</button>
       </fieldset>
       <section id="passwordEntrySection">
@@ -107,29 +107,41 @@
 
         <!-- Webpage Password Update -->
         <section>
-          <label>
-            Update Webpage Password
-            <fieldset role="group">
-              <input
-                type="password"
-                placeholder="Enter New Password"
-                aria-label="Enter New Password"
-                disabled
-              />
-              <input type="button" value="Update Password" disabled />
-            </fieldset>
-          </label>
+          <label for="updatePassword">Update Password</label>
+          <fieldset role="group" id="updatePassword">
+            <input
+              type="password"
+              placeholder="Enter New Password"
+              aria-label="Enter New Password"
+              disabled
+            />
+            <input type="button" value="Update Password" disabled />
+          </fieldset>
         </section>
 
         <!-- OTA Update File Upload -->
         <section>
-          <label>
-            OTA Update File Upload
+          <label for="ota_form">OTA Update</label>
+          <form
+            method="POST"
+            action="/upload"
+            enctype="multipart/form-data"
+            target="iframe"
+            id="ota_form"
+          >
             <fieldset role="group">
-              <input type="file" disabled />
-              <input type="button" value="Upload" disabled />
+              <input type="file" id="ota_file" name="upload" />
+              <input type="submit" value="Upload" id="upload_ota_file_button" />
             </fieldset>
-          </label>
+          </form>
+
+          <!-- Upload progress bar -->
+          <progress
+            id="ota_file_upload_progress"
+            style="display: none"
+            value="0"
+            max="100"
+          />
         </section>
       </div>
     </main>
