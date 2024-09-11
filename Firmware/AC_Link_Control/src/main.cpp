@@ -1,10 +1,13 @@
 #include <Arduino.h>
 #include <AudisonACLink.hpp>
 #include <CDRCWebServer.hpp>
+#include "esp_ota_ops.h"
 
 #define RS485_TX_PIN 15
 #define RS485_RX_PIN 5
 #define RS485_TX_EN_PIN 2
+
+#define FW_VERSION "0.0.1"
 
 // #define TRIAL_TRANSMIT
 #define TRIAL_RECEIVE
@@ -16,6 +19,17 @@ uint8_t rx_buffer[255];
 void setup(void)
 {
   Serial.begin(115200);
+
+  // Get the OTA partitions that are running and the next one that it will point to
+  const esp_partition_t *running = esp_ota_get_running_partition();
+  const esp_partition_t *otaPartition = esp_ota_get_next_update_partition(NULL);
+  Serial.printf("Running partition type %d subtype %d (offset 0x%08x)\n", running->type, running->subtype, running->address);
+  Serial.printf("OTA partition will be type %d subtype %d (offset 0x%x)\n", otaPartition->type, otaPartition->subtype, otaPartition->address);
+
+  Serial.printf("****** CDRC Firmware ******\n");
+  Serial.printf("****** FW Version: %s *****\n", FW_VERSION);
+  Serial.printf("******  J SEQUEIRA   ******\n");
+
   RS485_Config_t rs485_config;
   rs485_config.rs485_tx_pin = RS485_TX_PIN;
   rs485_config.rs485_rx_pin = RS485_RX_PIN;
