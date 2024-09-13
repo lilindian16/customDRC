@@ -6,19 +6,36 @@
 #define RS485_TX_PIN 15
 #define RS485_RX_PIN 5
 #define RS485_TX_EN_PIN 2
+#define LED_PIN 25
 
 #define FW_VERSION "0.0.1"
 
 // #define TRIAL_TRANSMIT
 #define TRIAL_RECEIVE
 
+TaskHandle_t blinky_task_handle;
+
 AudisonACLink ac_link;
 
 uint8_t rx_buffer[255];
 
+void blinky(void *pvParameters)
+{
+  while (1)
+  {
+    digitalWrite(LED_PIN, HIGH);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    digitalWrite(LED_PIN, LOW);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+}
+
 void setup(void)
 {
   Serial.begin(115200);
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   // Get the OTA partitions that are running and the next one that it will point to
   const esp_partition_t *running = esp_ota_get_running_partition();
@@ -37,6 +54,8 @@ void setup(void)
   ac_link.init_ac_link_bus(&rs485_config);
 
   memset(rx_buffer, 0, sizeof(rx_buffer)); // Clear the rx buffer
+
+  xTaskCreatePinnedToCore(blinky, "blinky", 8000, NULL, tskIDLE_PRIORITY + 1, &blinky_task_handle, 1);
 
   web_server_init();
 }
