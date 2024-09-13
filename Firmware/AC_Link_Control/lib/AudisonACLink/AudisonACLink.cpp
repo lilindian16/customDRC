@@ -10,6 +10,7 @@
  */
 
 #include "AudisonACLink.hpp"
+#include "board_config.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h> // https: //github.com/plerup/espsoftwareserial/tree/main
 
@@ -20,6 +21,7 @@ EspSoftwareSerial::UART rs485_serial_port;
 
 void AudisonACLink::init_ac_link_bus(RS485_Config_t *rs485_config)
 {
+    Serial.printf("****** CDRC Board Version: %s ******\n", BOARD_NAME);
     this->tx_pin = rs485_config->rs485_tx_pin;
     this->rx_pin = rs485_config->rs485_rx_pin;
     this->tx_en_pin = rs485_config->rs485_tx_en_pin;
