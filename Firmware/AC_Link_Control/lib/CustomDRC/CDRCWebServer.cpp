@@ -2,6 +2,7 @@
 #include "CustomDRChtml.h"
 #include "CustomDRCcss.h"
 #include "CustomDRCjs.h"
+#include "Audison_AC_Link_Bus.hpp"
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -11,8 +12,8 @@
 #include <Update.h>
 
 /* Put your SSID & Password */
-const char *ssid = "Custom-DRC"; // Enter SSID here
-const char *password = "admin";  // Enter Password here
+const char *ssid = "Custom-DRC";   // Enter SSID here
+const char *password = "12345678"; // Enter Password here
 
 /* Put IP Address details */
 IPAddress local_ip(192, 168, 1, 1);
@@ -55,20 +56,24 @@ void handle_json_key_value(JsonPair key_value)
     {
         uint8_t master_volume_value = key_value.value();
         Serial.printf("*WS* masterVolume: %d\n", master_volume_value);
+        Audison_AC_Link.set_volume(master_volume_value);
     }
     else if (strcmp(key_value.key().c_str(), "subVolume") == 0)
     {
         uint8_t sub_volume_value = key_value.value();
+        Audison_AC_Link.set_sub_volume(sub_volume_value);
         Serial.printf("*WS* subVolume: %d\n", sub_volume_value);
     }
     else if (strcmp(key_value.key().c_str(), "balance") == 0)
     {
         uint8_t balance_value = key_value.value();
+        Audison_AC_Link.set_balance(balance_value);
         Serial.printf("*WS* balance: %d\n", balance_value);
     }
     else if (strcmp(key_value.key().c_str(), "fader") == 0)
     {
         uint8_t fader_value = key_value.value();
+        Audison_AC_Link.set_fader(fader_value);
         Serial.printf("*WS* fader: %d\n", fader_value);
     }
     else
@@ -184,7 +189,7 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
 
 void web_server_init()
 {
-    WiFi.softAP(ssid, password);
+    WiFi.softAP(ssid, password, 1, 0, 1, false);
     WiFi.softAPConfig(local_ip, gateway, subnet);
     delay(100);
 

@@ -9,7 +9,7 @@
  * Author: Jaime Sequeira
  */
 
-#include "AudisonACLink.hpp"
+#include "Audison_AC_Link_Bus.hpp"
 #include "board_config.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h> // https: //github.com/plerup/espsoftwareserial/tree/main
@@ -19,7 +19,7 @@
 
 EspSoftwareSerial::UART rs485_serial_port;
 
-void AudisonACLink::init_ac_link_bus(RS485_Config_t *rs485_config)
+void Audison_AC_Link_Bus::init_ac_link_bus(RS485_Config_t *rs485_config)
 {
     Serial.printf("****** CDRC Board Version: %s ******\n", BOARD_NAME);
     this->tx_pin = rs485_config->rs485_tx_pin;
@@ -30,7 +30,7 @@ void AudisonACLink::init_ac_link_bus(RS485_Config_t *rs485_config)
     digitalWrite(this->tx_en_pin, LOW); // RX EN pin is always low, we control flow with the TX pin going high
 }
 
-void AudisonACLink::set_volume(uint8_t volume)
+void Audison_AC_Link_Bus::set_volume(uint8_t volume)
 {
     if (volume <= 0x78)
     {
@@ -42,7 +42,7 @@ void AudisonACLink::set_volume(uint8_t volume)
     }
 }
 
-void AudisonACLink::set_balance(uint8_t balance_level)
+void Audison_AC_Link_Bus::set_balance(uint8_t balance_level)
 {
     if (balance_level <= 0x24)
     {
@@ -54,7 +54,7 @@ void AudisonACLink::set_balance(uint8_t balance_level)
     }
 }
 
-void AudisonACLink::set_fader(uint8_t fade_level)
+void Audison_AC_Link_Bus::set_fader(uint8_t fade_level)
 {
     if (fade_level <= 0x24)
     {
@@ -66,7 +66,7 @@ void AudisonACLink::set_fader(uint8_t fade_level)
     }
 }
 
-void AudisonACLink::set_sub_volume(uint8_t sub_volume)
+void Audison_AC_Link_Bus::set_sub_volume(uint8_t sub_volume)
 {
     if (sub_volume <= 0x18)
     {
@@ -78,7 +78,7 @@ void AudisonACLink::set_sub_volume(uint8_t sub_volume)
     }
 }
 
-void AudisonACLink::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t *data, uint8_t data_length)
+void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t *data, uint8_t data_length)
 {
     uint8_t message_length = HEADER_SIZE_BYTES + data_length + CHECKSUM_SIZE_BYTES;
     uint8_t message_buffer[message_length];
@@ -111,7 +111,7 @@ void AudisonACLink::write_to_audison_bus(uint8_t receiver_address, uint8_t trans
     digitalWrite(this->tx_en_pin, LOW); // TX output disable
 }
 
-uint8_t AudisonACLink::calculate_checksum(uint8_t *data_buffer, uint8_t data_length_bytes)
+uint8_t Audison_AC_Link_Bus::calculate_checksum(uint8_t *data_buffer, uint8_t data_length_bytes)
 {
     uint32_t byte_sum = 0;
     for (uint8_t i = 0; i < data_length_bytes; i++)
@@ -122,7 +122,7 @@ uint8_t AudisonACLink::calculate_checksum(uint8_t *data_buffer, uint8_t data_len
     return checksum;
 }
 
-uint8_t AudisonACLink::read_rx_message(uint8_t *data_buffer, uint8_t buffer_length)
+uint8_t Audison_AC_Link_Bus::read_rx_message(uint8_t *data_buffer, uint8_t buffer_length)
 {
     uint8_t bytes_to_read = rs485_serial_port.available();
     if (bytes_to_read)

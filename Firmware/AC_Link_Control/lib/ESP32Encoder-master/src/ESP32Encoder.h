@@ -9,17 +9,19 @@
 #endif
 
 #define MAX_ESP32_ENCODERS PCNT_UNIT_MAX
-#define 	_INT16_MAX 32766
-#define  	_INT16_MIN -32766
+#define _INT16_MAX 32766
+#define _INT16_MIN -32766
 #define ISR_CORE_USE_DEFAULT (0xffffffff)
 
-enum class encType {
+enum class encType
+{
 	single,
 	half,
 	full
 };
 
-enum class puType {
+enum class puType
+{
 	up,
 	down,
 	none
@@ -27,9 +29,10 @@ enum class puType {
 
 class ESP32Encoder;
 
-typedef void (*enc_isr_cb_t)(void*);
+typedef void (*enc_isr_cb_t)(void *);
 
-class ESP32Encoder {
+class ESP32Encoder
+{
 public:
 	/**
 	 * @brief Construct a new ESP32Encoder object
@@ -39,7 +42,7 @@ public:
 	 * 	the ESP32Encoder instance as an argument, no effect if always_interrupt is
 	 * 	false
 	 */
-	ESP32Encoder(bool always_interrupt=false, enc_isr_cb_t enc_isr_cb=nullptr, void* enc_isr_cb_data=nullptr);
+	ESP32Encoder(bool always_interrupt = false, enc_isr_cb_t enc_isr_cb = nullptr, void *enc_isr_cb_data = nullptr);
 	~ESP32Encoder();
 	void attachHalfQuad(int aPintNumber, int bPinNumber);
 	void attachFullQuad(int aPintNumber, int bPinNumber);
@@ -50,7 +53,7 @@ public:
 	int64_t resumeCount();
 	void detach();
 	[[deprecated("Replaced by detach")]] void detatch();
-	bool isAttached(){return attached;}
+	bool isAttached() { return attached; }
 	void setCount(int64_t value);
 	void setFilter(uint16_t value);
 	static ESP32Encoder *encoders[MAX_ESP32_ENCODERS];
@@ -59,21 +62,24 @@ public:
 	gpio_num_t bPinNumber;
 	pcnt_unit_t unit;
 	int countsMode = 2;
-	volatile int64_t count=0;
+	volatile int64_t count = 0;
 	pcnt_config_t r_enc_config;
 	static puType useInternalWeakPullResistors;
 	static uint32_t isrServiceCpuCore;
 	enc_isr_cb_t _enc_isr_cb;
-	void* _enc_isr_cb_data;
+	void *_enc_isr_cb_data;
+	void set_encoder_id(uint8_t id); // Added by J Sequeira
+	uint8_t get_encoder_id(void);	 // Added by J Sequeira
 
 private:
 	static bool attachedInterrupt;
 	void attach(int aPintNumber, int bPinNumber, encType et);
 	int64_t getCountRaw();
 	bool attached;
-  bool direction;
-  bool working;
+	bool direction;
+	bool working;
+	uint8_t encoder_id; // Added by J Sequeira. Default is zero with constructor
 };
 
-//Added by Sloeber
+// Added by Sloeber
 #pragma once

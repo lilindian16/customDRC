@@ -13,8 +13,16 @@
 
 #include <stdint.h>
 
-#define AUDISON_DSP_RS485_ADDRESS 0x00
-#define AUDISON_DRC_RS485_ADDRESS 0x80
+constexpr uint8_t AUDISON_DSP_RS485_ADDRESS = 0x00;
+constexpr uint8_t AUDISON_DRC_RS485_ADDRESS = 0x80;
+
+constexpr uint8_t MIN_VOLUME_VALUE = 0x00;
+constexpr uint8_t MAX_VOLUME_VALUE = 0x78;
+constexpr uint8_t MIN_SUB_VOLUME_VALUE = 0x00;
+constexpr uint8_t MAX_SUB_VOLUME_VALUE = 0x18;
+constexpr uint8_t MIN_FADER_VALUE = 0x00;
+constexpr uint8_t MAX_FADER_VALUE = 0x24;
+constexpr uint8_t MIN_BALANCE_VALUE = 0x00;
 
 typedef struct
 {
@@ -32,7 +40,7 @@ enum AC_Link_Command
     SUB_VOLUME_ADJUST = 0x0D,
 };
 
-class AudisonACLink
+class Audison_AC_Link_Bus
 {
 public: // Public functions
     /**
@@ -90,3 +98,5 @@ private: // Private Variables
     int rx_pin;
     int tx_en_pin;
 };
+
+extern Audison_AC_Link_Bus Audison_AC_Link;

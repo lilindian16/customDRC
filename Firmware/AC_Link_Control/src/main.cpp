@@ -1,7 +1,5 @@
 #include <Arduino.h>
-#include <AudisonACLink.hpp>
-#include <CDRCWebServer.hpp>
-#include <ESP32Encoder.h>
+#include <Custom_DRC.hpp>
 #include "esp_ota_ops.h"
 
 #define RS485_TX_PIN 15
@@ -9,59 +7,15 @@
 #define RS485_TX_EN_PIN 2
 #define LED_PIN 25
 
-#define ENCODER_1_A 35
-#define ENCODER_1_B 32
-#define ENCODER_1_SW 33
-
-#define MIN_VOLUME_VALUE 0
-#define MAX_VOLUME_VALUE 120
-
 #define FW_VERSION "0.0.1"
 
 // #define TRIAL_TRANSMIT
 #define TRIAL_RECEIVE
 
-TaskHandle_t blinky_task_handle, encoder_task_handle;
-
-AudisonACLink ac_link;
-
+TaskHandle_t blinky_task_handle;
 uint8_t rx_buffer[255];
 
-void encoder_task(void *pvParameters); // Forward declaration
-
-static IRAM_ATTR void enc_cb(void *arg)
-{
-  ESP32Encoder *enc = (ESP32Encoder *)arg;
-  BaseType_t xYieldRequired;
-  // Resume the suspended task.
-  xYieldRequired = xTaskResumeFromISR(encoder_task_handle);
-  // We should switch context so the ISR returns to a different task.
-  // NOTE:  How this is done depends on the port you are using.  Check
-  // the documentation and examples for your port.
-  portYIELD_FROM_ISR(xYieldRequired);
-}
-
-ESP32Encoder encoder1(true, enc_cb);
-
-void encoder_task(void *pvParameters)
-{
-  while (1)
-  {
-    int64_t encoder1_count = encoder1.getCount();
-    if (encoder1_count > MAX_VOLUME_VALUE)
-    {
-      encoder1.setCount(MAX_VOLUME_VALUE);
-      encoder1_count = MAX_VOLUME_VALUE;
-    }
-    else if (encoder1_count < MIN_VOLUME_VALUE)
-    {
-      encoder1.setCount(MIN_VOLUME_VALUE);
-      encoder1_count = MIN_VOLUME_VALUE;
-    }
-    Serial.println("Encoder1 count = " + String(encoder1_count));
-    vTaskSuspend(NULL);
-  }
-}
+Audison_AC_Link_Bus Audison_AC_Link;
 
 void blinky(void *pvParameters)
 {
@@ -81,10 +35,6 @@ void setup(void)
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
 
-  encoder1.attachSingleEdge(ENCODER_1_A, ENCODER_1_B);
-  encoder1.clearCount(); // set starting count value after attaching
-  encoder1.setFilter(1023);
-
   // Get the OTA partitions that are running and the next one that it will point to
   const esp_partition_t *running = esp_ota_get_running_partition();
   const esp_partition_t *otaPartition = esp_ota_get_next_update_partition(NULL);
@@ -99,13 +49,12 @@ void setup(void)
   rs485_config.rs485_tx_pin = RS485_TX_PIN;
   rs485_config.rs485_rx_pin = RS485_RX_PIN;
   rs485_config.rs485_tx_en_pin = RS485_TX_EN_PIN;
-  ac_link.init_ac_link_bus(&rs485_config);
+  Audison_AC_Link.init_ac_link_bus(&rs485_config);
 
   memset(rx_buffer, 0, sizeof(rx_buffer)); // Clear the rx buffer
 
   xTaskCreatePinnedToCore(blinky, "blinky", 8000, NULL, tskIDLE_PRIORITY + 1, &blinky_task_handle, 1);
-  xTaskCreatePinnedToCore(encoder_task, "ENCODER", 8000, NULL, tskIDLE_PRIORITY + 1, &encoder_task_handle, 1);
-
+  init_drc_encoders();
   web_server_init();
 }
 
@@ -122,7 +71,7 @@ void loop(void)
   }
 #endif
 #ifdef TRIAL_RECEIVE
-  uint8_t bytes_read = ac_link.read_rx_message(rx_buffer, sizeof(rx_buffer));
+  uint8_t bytes_read = Audison_AC_Link.read_rx_message(rx_buffer, sizeof(rx_buffer));
   if (bytes_read > 0)
   {
     if (rx_buffer[1] == AUDISON_DRC_RS485_ADDRESS) // Filter DRC messages
