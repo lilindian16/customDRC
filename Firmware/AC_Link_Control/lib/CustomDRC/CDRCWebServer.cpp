@@ -213,3 +213,20 @@ void web_server_init()
     server.onNotFound(notFound);
     server.begin();
 }
+
+void update_web_server_master_volume_value(uint8_t value)
+{
+    web_socket_handle.printfAll("{\"masterVolume\": %d}", value);
+}
+void update_web_server_fader_value(uint8_t value)
+{
+    web_socket_handle.printfAll("{\"fader\": %d}", value);
+}
+void update_web_server_balance_value(uint8_t value)
+{
+    web_socket_handle.printfAll("{\"balance\": %d}", value);
+}
+void update_web_server_sub_volume_value(uint8_t value)
+{
+    web_socket_handle.printfAll("{\"subVolume\": %d}", value);
+}

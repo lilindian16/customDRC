@@ -2,11 +2,11 @@
 #include <Custom_DRC.hpp>
 #include "esp_ota_ops.h"
 
-#define RS485_TX_PIN 15
-#define RS485_RX_PIN 5
-#define RS485_TX_EN_PIN 2
+#define RS485_TX_PIN 18
+#define RS485_RX_PIN 21
+#define RS485_TX_EN_PIN 19
 #define LED_PIN 25
-
+#define DSP_PWR_EN_PIN 5
 #define FW_VERSION "0.0.1"
 
 // #define TRIAL_TRANSMIT
@@ -32,6 +32,9 @@ void setup(void)
 {
   Serial.begin(115200);
 
+  pinMode(DSP_PWR_EN_PIN, OUTPUT);
+  digitalWrite(DSP_PWR_EN_PIN, LOW);
+
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
 
@@ -50,9 +53,7 @@ void setup(void)
   rs485_config.rs485_rx_pin = RS485_RX_PIN;
   rs485_config.rs485_tx_en_pin = RS485_TX_EN_PIN;
   Audison_AC_Link.init_ac_link_bus(&rs485_config);
-
   memset(rx_buffer, 0, sizeof(rx_buffer)); // Clear the rx buffer
-
   xTaskCreatePinnedToCore(blinky, "blinky", 8000, NULL, tskIDLE_PRIORITY + 1, &blinky_task_handle, 1);
   init_drc_encoders();
   web_server_init();
@@ -60,31 +61,19 @@ void setup(void)
 
 void loop(void)
 {
-#ifdef TRIAL_TRANSMIT
-  /* Trial transmit function. We can send volume adjust packets for now */
-  for (uint8_t i = 0; i <= 0x78; i++)
-  {
-    ac_link.set_volume(i);
-    Serial.print("Volume: ");
-    Serial.println(i, HEX);
-    delay(250);
-  }
-#endif
-#ifdef TRIAL_RECEIVE
   uint8_t bytes_read = Audison_AC_Link.read_rx_message(rx_buffer, sizeof(rx_buffer));
   if (bytes_read > 0)
   {
-    if (rx_buffer[1] == AUDISON_DRC_RS485_ADDRESS) // Filter DRC messages
+    // if (rx_buffer[1] == AUDISON_DRC_RS485_ADDRESS) // Filter DRC messages
+    // {
+    for (uint8_t i = 0; i < bytes_read; i++)
     {
-      for (uint8_t i = 0; i < bytes_read; i++)
-      {
-        Serial.print(rx_buffer[i], HEX);
-        Serial.print(" ");
-      }
-      Serial.println();
+      Serial.print(rx_buffer[i], HEX);
+      Serial.print(" ");
     }
+    Serial.println();
+    // }
     memset(rx_buffer, 0, sizeof(rx_buffer)); // Clear the buffer
   }
   vTaskDelay(pdMS_TO_TICKS(50));
-#endif
 }

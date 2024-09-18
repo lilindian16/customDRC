@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <ESP32Encoder.h>
 #include "Audison_AC_Link_Bus.hpp"
+#include "CDRCWebServer.hpp"
 
 #define ENCODER_1_A 35
 #define ENCODER_1_B 32
@@ -58,6 +59,7 @@ void encoder_task(void *pvParameters)
                 encoder_1_count = MIN_VOLUME_VALUE;
             }
             Audison_AC_Link.set_volume(encoder_1_count);
+            update_web_server_master_volume_value(encoder_1_count);
             Serial.println("Encoder_1 count = " + String(encoder_1_count));
         }
         if (xSemaphoreTake(encoder_2_semaphore_handle, TickType_t(10)))
@@ -74,6 +76,7 @@ void encoder_task(void *pvParameters)
                 encoder_2_count = MIN_SUB_VOLUME_VALUE;
             }
             Audison_AC_Link.set_sub_volume(encoder_2_count);
+            update_web_server_sub_volume_value(encoder_2_count);
             Serial.println("Encoder_2 count = " + String(encoder_2_count));
         }
         vTaskSuspend(NULL);
