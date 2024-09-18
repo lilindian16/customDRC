@@ -2,7 +2,6 @@ var gateway = `ws://${window.location.hostname}/ws`;
 var websocket;
 window.addEventListener("load", onload); // Init web socket when the page loads
 
-const enable_debug = false;
 var volume = 0;
 
 /* Define all DOM elements here */
@@ -61,6 +60,10 @@ function onMessage(event) {
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
     document.getElementById(key).innerHTML = myObj[key];
+    console.log(key[i]);
+    if (key == "masterVolume") {
+      update_range_display(master_volume_range, myObj[key]);
+    }
   }
 }
 /* End websocket callback functions */
