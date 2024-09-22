@@ -14,22 +14,7 @@
         <h1>Custom DRC</h1>
         <button id="quitButton" style="display: none">Quit</button>
       </fieldset>
-      <section id="passwordEntrySection">
-        <form>
-          <fieldset role="group">
-            <input
-              type="password"
-              id="passwordEntry"
-              name="password"
-              placeholder="Password"
-              aria-label="Password"
-            />
-            <button id="submitPasswordButton" type="button">Enter</button>
-          </fieldset>
-        </form>
-      </section>
-
-      <div class="container" id="mainBody" style="display: none">
+      <div class="container" id="mainBody">
         <section>
           <!-- DSP Memory Select -->
           <fieldset>
@@ -106,7 +91,7 @@
         </section>
 
         <!-- Webpage Password Update -->
-        <section>
+        <section style="display: none">
           <label for="updatePassword">Update Password</label>
           <fieldset role="group" id="updatePassword">
             <input
