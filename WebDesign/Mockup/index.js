@@ -8,9 +8,10 @@ var volume = 0;
 let password_window = document.getElementById("passwordEntrySection");
 let main_window = document.getElementById("mainBody");
 let quit_button = document.getElementById("quitButton");
-let password_submit_button = document.getElementById("submitPasswordButton");
 let mute_switch = document.getElementById("mute_switch");
 let input_select_radio = document.getElementsByName("InputSelect");
+let dsp_memory_a_radio = document.getElementById("DSPMemA");
+let dsp_memory_b_radio = document.getElementById("DSPMemB");
 let ota_file_upload_button = document.getElementById("upload_ota_file_button");
 let ota_file_upload_progress_bar = document.getElementById(
   "ota_file_upload_progress"
@@ -21,6 +22,9 @@ let master_volume_range = document.getElementById("masterVolume");
 let sub_volume_range = document.getElementById("subVolume");
 let balance_range = document.getElementById("balance");
 let fader_range = document.getElementById("fader");
+
+// Link Bus connection
+let link_bus_connection_display = document.getElementById("busConnection");
 /* DOM Elements end */
 
 /* Define global file constants here */
@@ -59,10 +63,38 @@ function onMessage(event) {
   var keys = Object.keys(myObj);
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i];
-    document.getElementById(key).innerHTML = myObj[key];
     console.log(key[i]);
-    if (key == "masterVolume") {
+    if (key == "dspMemory") {
+      let mem = myObj[key];
+      if (mem == 0) {
+        dsp_memory_a_radio.checked = true;
+      } else if (mem == 1) {
+        dsp_memory_b_radio.checked = true;
+      }
+      console.log("DSP mem change");
+    } else if (key == "inputSelect") {
+      console.log("inputSelect change");
+    } else if (key == "mute") {
+      var muted = myObj[key];
+      mute_switch.checked = Boolean(muted);
+      console.log("Mute: ", mute_switch.checked);
+    } else if (key == "masterVolume") {
       update_range_display(master_volume_range, myObj[key]);
+    } else if (key == "fader") {
+      update_range_display(fader_range, myObj[key]);
+    } else if (key == "balance") {
+      update_range_display(balance_range, myObj[key]);
+    } else if (key == "subVolume") {
+      update_range_display(sub_volume_range, myObj[key]);
+    } else if (key == "usbConnected") {
+      var bus_connected = Boolean(myObj[key]);
+      if (bus_connected == true) {
+        link_bus_connection_display.innerHTML = "<del>Link Bus Inactive</del>";
+      } else {
+        link_bus_connection_display.innerHTML = "<ins>Link Bus Active</ins>";
+      }
+    } else {
+      console.log("Unknown websocket JSON key");
     }
   }
 }
@@ -124,7 +156,6 @@ function on_ota_file_upload_button_clicked(event) {
 function onload(event) {
   initWebSocket();
   init_range_inputs();
-  password_submit_button.addEventListener("click", send_password_auth);
   mute_switch.addEventListener("change", on_mute_switch_change);
   document
     .getElementById("ota_form")
@@ -161,7 +192,9 @@ function init_range_inputs() {
 }
 
 function get_remote_settings() {
-  websocket.send("{getRemoteSettings: 1}");
+  let message = "{getRemoteSettings: 1}";
+  console.log(message);
+  websocket.send(message);
 }
 
 function send_password_auth() {
