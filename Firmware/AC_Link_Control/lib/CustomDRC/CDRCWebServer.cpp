@@ -3,6 +3,8 @@
 #include "CustomDRCcss.h"
 #include "CustomDRCjs.h"
 #include "Audison_AC_Link_Bus.hpp"
+#include "DRC_Encoder.hpp"
+#include "Custom_DRC.hpp"
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -26,11 +28,24 @@ AsyncWebServer server(80);
 // Create a WebSocket object
 AsyncWebSocket web_socket_handle("/ws");
 
+struct DSP_Settings *dsp_settings_web_server;
+
+bool client_connected_to_websocket = false;
+
 void handle_json_key_value(JsonPair key_value)
 {
     if (strcmp(key_value.key().c_str(), "getRemoteSettings") == 0)
     {
         Serial.println("*WS* Webpage loaded. Get settings");
+        // Get the latest remote settings
+        update_web_server_parameter(DSP_SETTING_INDEX_MEMORY_SELECT, dsp_settings_web_server->memory_select);
+        update_web_server_parameter(DSP_SETTING_INDEX_INPUT_SELECT, dsp_settings_web_server->input_select);
+        update_web_server_parameter(DSP_SETTING_INDEX_MUTE, (uint8_t)dsp_settings_web_server->mute);
+        update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, dsp_settings_web_server->master_volume);
+        update_web_server_parameter(DSP_SETTING_INDEX_SUB_VOLUME, dsp_settings_web_server->sub_volume);
+        update_web_server_parameter(DSP_SETTING_INDEX_BALANCE, dsp_settings_web_server->balance);
+        update_web_server_parameter(DSP_SETTING_INDEX_FADER, dsp_settings_web_server->fader);
+        update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, (uint8_t)dsp_settings_web_server->usb_connected);
     }
     else if (strcmp(key_value.key().c_str(), "password") == 0)
     {
@@ -40,39 +55,49 @@ void handle_json_key_value(JsonPair key_value)
     else if (strcmp(key_value.key().c_str(), "dspMemory") == 0)
     {
         uint8_t dspMemoryValue = key_value.value();
+        dsp_settings_web_server->memory_select = dspMemoryValue;
         Serial.printf("*WS* dspMemory: %d\n", dspMemoryValue);
     }
     else if (strcmp(key_value.key().c_str(), "inputSelect") == 0)
     {
         uint8_t inputSelectValue = key_value.value();
+        dsp_settings_web_server->input_select = inputSelectValue;
         Serial.printf("*WS* inputSelect: %d\n", inputSelectValue);
     }
     else if (strcmp(key_value.key().c_str(), "mute") == 0)
     {
-        uint8_t muteValue = key_value.value();
+        bool muteValue = key_value.value();
         Serial.printf("*WS* mute: %d\n", muteValue);
+        dsp_settings_web_server->mute = muteValue;
+        dsp_settings_web_server->master_volume = 0x00;
+        Audison_AC_Link.set_volume(0); // Still need to find a way to mute the system while remembering the old volume
+        update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, dsp_settings_web_server->master_volume);
     }
     else if (strcmp(key_value.key().c_str(), "masterVolume") == 0)
     {
         uint8_t master_volume_value = key_value.value();
+        dsp_settings_web_server->master_volume = master_volume_value;
         Serial.printf("*WS* masterVolume: %d\n", master_volume_value);
         Audison_AC_Link.set_volume(master_volume_value);
     }
     else if (strcmp(key_value.key().c_str(), "subVolume") == 0)
     {
         uint8_t sub_volume_value = key_value.value();
+        dsp_settings_web_server->sub_volume = sub_volume_value;
         Audison_AC_Link.set_sub_volume(sub_volume_value);
         Serial.printf("*WS* subVolume: %d\n", sub_volume_value);
     }
     else if (strcmp(key_value.key().c_str(), "balance") == 0)
     {
         uint8_t balance_value = key_value.value();
+        dsp_settings_web_server->balance = balance_value;
         Audison_AC_Link.set_balance(balance_value);
         Serial.printf("*WS* balance: %d\n", balance_value);
     }
     else if (strcmp(key_value.key().c_str(), "fader") == 0)
     {
         uint8_t fader_value = key_value.value();
+        dsp_settings_web_server->fader = fader_value;
         Audison_AC_Link.set_fader(fader_value);
         Serial.printf("*WS* fader: %d\n", fader_value);
     }
@@ -111,9 +136,11 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     switch (type)
     {
     case WS_EVT_CONNECT:
+        client_connected_to_websocket = true;
         Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
         break;
     case WS_EVT_DISCONNECT:
+        client_connected_to_websocket = false;
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
         break;
     case WS_EVT_DATA:
@@ -187,11 +214,30 @@ void handleUpload(AsyncWebServerRequest *request, String filename, size_t index,
     }
 }
 
-void web_server_init()
+// WARNING: This function is called from a separate FreeRTOS task (thread)!
+void WiFiEvent(WiFiEvent_t event)
 {
+    Serial.printf("[WiFi-event] event: %d\n", event);
+
+    switch (event)
+    {
+    case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
+        Serial.println("Client connected");
+        break;
+    case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
+        Serial.println("Client disconnected");
+        break;
+    default:
+        break;
+    }
+}
+
+void web_server_init(struct DSP_Settings *settings)
+{
+    dsp_settings_web_server = settings;
     WiFi.softAP(ssid, password, 1, 0, 1, false);
     WiFi.softAPConfig(local_ip, gateway, subnet);
-    delay(100);
+    WiFi.onEvent(WiFiEvent);
 
     initWebSocket();
 
@@ -214,19 +260,48 @@ void web_server_init()
     server.begin();
 }
 
-void update_web_server_master_volume_value(uint8_t value)
+void update_web_server_parameter(uint8_t parameter, uint8_t value)
 {
-    web_socket_handle.printfAll("{\"masterVolume\": %d}", value);
-}
-void update_web_server_fader_value(uint8_t value)
-{
-    web_socket_handle.printfAll("{\"fader\": %d}", value);
-}
-void update_web_server_balance_value(uint8_t value)
-{
-    web_socket_handle.printfAll("{\"balance\": %d}", value);
-}
-void update_web_server_sub_volume_value(uint8_t value)
-{
-    web_socket_handle.printfAll("{\"subVolume\": %d}", value);
+
+    if (client_connected_to_websocket)
+    {
+        switch (parameter)
+        {
+        case DSP_SETTING_INDEX_MEMORY_SELECT:
+            web_socket_handle.printfAll("{\"dspMemory\": %d}", value);
+            break;
+
+        case DSP_SETTING_INDEX_INPUT_SELECT:
+            web_socket_handle.printfAll("{\"inputSelect\": %d}", value);
+            break;
+
+        case DSP_SETTING_INDEX_MUTE:
+            web_socket_handle.printfAll("{\"mute\": %d}", value);
+            break;
+
+        case DSP_SETTING_INDEX_MASTER_VOLUME:
+            web_socket_handle.printfAll("{\"masterVolume\": %d}", value);
+            break;
+
+        case DSP_SETTING_INDEX_SUB_VOLUME:
+            web_socket_handle.printfAll("{\"subVolume\": %d}", value);
+            break;
+
+        case DSP_SETTING_INDEX_BALANCE:
+            web_socket_handle.printfAll("{\"balance\": %d}", value);
+            break;
+
+        case DSP_SETTING_INDEX_FADER:
+            web_socket_handle.printfAll("{\"fader\": %d}", value);
+            break;
+
+        case DSP_SETTING_INDEX_USB_CONNECTED:
+            web_socket_handle.printfAll("{\"usbConnected\": %d}", value);
+            break;
+
+        default:
+            log_e("Unknown web server parameter update request");
+            break;
+        }
+    }
 }
