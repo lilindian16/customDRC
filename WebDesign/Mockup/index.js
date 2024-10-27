@@ -89,7 +89,7 @@ function onMessage(event) {
     } else if (key == "usbConnected") {
       var bus_connected = Boolean(myObj[key]);
       if (bus_connected == true) {
-        link_bus_connection_display.innerHTML = "<del>Link Bus Inactive</del>";
+        link_bus_connection_display.innerHTML = "<del>Link Bus Active</del>";
       } else {
         link_bus_connection_display.innerHTML = "<ins>Link Bus Active</ins>";
       }
