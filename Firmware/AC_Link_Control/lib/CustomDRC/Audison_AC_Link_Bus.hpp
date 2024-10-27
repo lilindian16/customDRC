@@ -15,20 +15,11 @@
 #include "Custom_DRC.hpp"
 
 enum AC_Link_Address {
-    AC_LINK_ADDRESS_DSP_MASTER = 0x00,
+    AC_LINK_ADDRESS_DSP_MCU = 0x00,
     AC_LINK_ADDRESS_DSP_PROCESSOR = 0x46,
-    AC_LINK_ADDRESS_USB_CONTROLLER = 0x5A,
+    AC_LINK_ADDRESS_COMPUTER = 0x5A,
     AC_LINK_ADDRESS_DRC = 0x80,
 };
-
-constexpr uint8_t MIN_VOLUME_VALUE = 0x00;
-constexpr uint8_t MAX_VOLUME_VALUE = 0x78;
-constexpr uint8_t MIN_SUB_VOLUME_VALUE = 0x00;
-constexpr uint8_t MAX_SUB_VOLUME_VALUE = 0x18;
-constexpr uint8_t MIN_FADER_VALUE = 0x00;
-constexpr uint8_t MAX_FADER_VALUE = 0x24;
-constexpr uint8_t MIN_BALANCE_VALUE = 0x00;
-constexpr uint8_t MAX_BALANCE_VALUE = 0x24;
 
 enum AC_Link_Command {
     AC_LINK_COMMAND_INPUT_SOURCE_NAME = 0x09,
@@ -45,6 +36,15 @@ enum AC_Link_Command {
 
 };
 
+constexpr uint8_t MIN_VOLUME_VALUE = 0x00;
+constexpr uint8_t MAX_VOLUME_VALUE = 0x78;
+constexpr uint8_t MIN_SUB_VOLUME_VALUE = 0x00;
+constexpr uint8_t MAX_SUB_VOLUME_VALUE = 0x18;
+constexpr uint8_t MIN_FADER_VALUE = 0x00;
+constexpr uint8_t MAX_FADER_VALUE = 0x24;
+constexpr uint8_t MIN_BALANCE_VALUE = 0x00;
+constexpr uint8_t MAX_BALANCE_VALUE = 0x24;
+
 class Audison_AC_Link_Bus {
   public: // Public functions
     /**
@@ -55,21 +55,21 @@ class Audison_AC_Link_Bus {
     /**
      * @param volume Value between mute (0x00) and max volume (0x78)
      */
-    void set_volume(uint8_t volume, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MASTER);
+    void set_volume(uint8_t volume, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
 
     /**
      * @param balance_level Balance between left (0x00) and right (0x24)
      */
-    void set_balance(uint8_t balance_level, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MASTER);
+    void set_balance(uint8_t balance_level, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
 
     /**
      * @param fade_level Fade between front (0x00) and rear (0x24)
      */
-    void set_fader(uint8_t fade_level, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MASTER);
+    void set_fader(uint8_t fade_level, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
     /**
      * @param sub_volume Value between 0x00 (mute) and 0x18 (-12dB)
      */
-    void set_sub_volume(uint8_t sub_volume, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MASTER);
+    void set_sub_volume(uint8_t sub_volume, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
 
     /**
      * @param memory Value between 0x01 (A) and 0x02 (B)
@@ -83,11 +83,13 @@ class Audison_AC_Link_Bus {
      */
     void check_usb_on_bus(void);
 
+    void check_dsp_mcu_on_bus(void);
+
     /**
      * Updates a device with the latest DRC settings
      */
     void update_device_with_latest_settngs(struct DSP_Settings* settings,
-                                           uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MASTER);
+                                           uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
 
     /**
      * @param data_buffer Empty buffer for data to be populated into

@@ -38,7 +38,7 @@ void rs485_rx_task(void* pvParameters) {
 
             if (receiver == AC_LINK_ADDRESS_DRC) // Filter only DRC addressed messages
             {
-                if (transmitter == AC_LINK_ADDRESS_USB_CONTROLLER) {
+                if (transmitter == AC_LINK_ADDRESS_COMPUTER) {
                     switch (command) {
                         case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
                             if (message_length == 7 && rx_buffer[5] == 0x0A) {
@@ -51,7 +51,7 @@ void rs485_rx_task(void* pvParameters) {
                         case AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED:
                             dsp_settings_rs485->usb_connected = false;
                             ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485,
-                                                                               AC_LINK_ADDRESS_USB_CONTROLLER);
+                                                                               AC_LINK_ADDRESS_COMPUTER);
                             update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 0);
                             log_i("USB disconnected. RS485 bus active");
                             break;
@@ -59,7 +59,7 @@ void rs485_rx_task(void* pvParameters) {
                             log_i("RS485->USB->DRC, unknown command received: %02x", command);
                             break;
                     }
-                } else if (transmitter == AC_LINK_ADDRESS_DSP_PROCESSOR) {
+                } else if (transmitter == AC_LINK_ADDRESS_DSP_MCU) {
                     switch (command) {
                         case AC_LINK_COMMAND_USB_CONNECTED:
                             dsp_settings_rs485->usb_connected = true;
@@ -75,8 +75,8 @@ void rs485_rx_task(void* pvParameters) {
                 } else {
                     log_e("RS485 unknown sender: %02x", transmitter);
                 }
-            } else if (receiver == AC_LINK_ADDRESS_DSP_MASTER) {
-                if (transmitter == AC_LINK_ADDRESS_USB_CONTROLLER) {
+            } else if (receiver == AC_LINK_ADDRESS_DSP_MCU) {
+                if (transmitter == AC_LINK_ADDRESS_COMPUTER) {
                     switch (command) {
                         case AC_LINK_COMMAND_CHANGE_DSP_MEMORY:
                             dsp_settings_rs485->memory_select = rx_buffer[5] - 1; // Offset for DSP index 1
@@ -114,13 +114,14 @@ void rs485_tx_task(void* pvParameters) {
     while (1) {
         if (!boot_up_completed) {
             vTaskDelay(pdMS_TO_TICKS(1000));
-            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_DSP_MASTER);
+            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_DSP_MCU);
             vTaskDelay(pdMS_TO_TICKS(1000));
-            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_USB_CONTROLLER);
+            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_COMPUTER);
             boot_up_completed = true;
         }
         if (!dsp_settings_rs485->usb_connected) {
             ac_link_bus_ptr->check_usb_on_bus();
+            ac_link_bus_ptr->check_dsp_mcu_on_bus();
         }
         vTaskDelay(pdMS_TO_TICKS(250));
     }
@@ -183,7 +184,12 @@ void Audison_AC_Link_Bus::set_sub_volume(uint8_t sub_volume, uint8_t receiver_ad
 
 void Audison_AC_Link_Bus::check_usb_on_bus(void) {
     uint8_t packet[] = {AC_LINK_COMMAND_CHECK_DEVICE_PRESENT};
-    this->write_to_audison_bus(AC_LINK_ADDRESS_USB_CONTROLLER, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+    this->write_to_audison_bus(AC_LINK_ADDRESS_COMPUTER, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+}
+
+void Audison_AC_Link_Bus::check_dsp_mcu_on_bus(void) {
+    uint8_t packet[] = {AC_LINK_COMMAND_CHECK_DEVICE_PRESENT};
+    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_MCU, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
 }
 
 void Audison_AC_Link_Bus::set_dsp_memory(uint8_t memory) {
@@ -244,7 +250,7 @@ void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t
 
 void Audison_AC_Link_Bus::turn_off_main_unit(void) {
     uint8_t data_packet[] = {AC_LINK_COMMAND_TURN_OFF_MAIN_UNIT};
-    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_MASTER, AC_LINK_ADDRESS_DRC, data_packet, sizeof(data_packet));
+    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_MCU, AC_LINK_ADDRESS_DRC, data_packet, sizeof(data_packet));
 }
 
 uint8_t Audison_AC_Link_Bus::calculate_checksum(uint8_t* data_buffer, uint8_t data_length_bytes) {
