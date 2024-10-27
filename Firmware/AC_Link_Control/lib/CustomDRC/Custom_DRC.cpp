@@ -1,8 +1,8 @@
 #include "Custom_DRC.hpp"
 
 #include <Arduino.h>
-#include <esp_ota_ops.h>
 #include <ArduinoNvs.h>
+#include <esp_ota_ops.h>
 
 #define FW_VERSION "0.0.1"
 
@@ -16,50 +16,40 @@ TaskHandle_t blinky_task_handle;
 Audison_AC_Link_Bus Audison_AC_Link;
 struct DSP_Settings dsp_settings;
 
-#define NVS_HEADER_KEY "nvsHead"
+#define NVS_HEADER_KEY       "nvsHead"
 #define NVS_DSP_SETTINGS_KEY "dspSet"
 const uint8_t NVS_Header[4] = {0xDE, 0xAD, 0xBE, 0xEF};
 uint8_t nvs_dsp_settings[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x12};
 
 bool shut_down_mode_enabled = false;
 
-void blinky(void *pvParameters)
-{
-    while (1)
-    {
-        if (shut_down_mode_enabled)
-        {
+void blinky(void* pvParameters) {
+    while (1) {
+        if (shut_down_mode_enabled) {
             digitalWrite(LED_PIN, HIGH);
             vTaskDelay(pdMS_TO_TICKS(50));
             digitalWrite(LED_PIN, LOW);
             vTaskDelay(pdMS_TO_TICKS(50));
-        }
-        else
-        {
+        } else {
             digitalWrite(LED_PIN, HIGH);
             vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
 }
 
-void on_button_held(void)
-{
+void on_button_held(void) {
     shut_down_mode_enabled = true;
 }
 
-void on_button_released(bool button_was_held)
-{
-    if (button_was_held)
-    {
+void on_button_released(bool button_was_held) {
+    if (button_was_held) {
         shut_down_dsp();
     }
 }
 
-void load_dsp_settings_from_nvs(struct DSP_Settings *settings)
-{
+void load_dsp_settings_from_nvs(struct DSP_Settings* settings) {
     bool ok = NVS.getBlob(NVS_DSP_SETTINGS_KEY, nvs_dsp_settings, sizeof(nvs_dsp_settings));
-    if (ok)
-    {
+    if (ok) {
         settings->memory_select = nvs_dsp_settings[DSP_SETTING_INDEX_MEMORY_SELECT];
         settings->input_select = nvs_dsp_settings[DSP_SETTING_INDEX_INPUT_SELECT];
         settings->mute = (bool)nvs_dsp_settings[DSP_SETTING_INDEX_MUTE];
@@ -68,19 +58,16 @@ void load_dsp_settings_from_nvs(struct DSP_Settings *settings)
         settings->balance = nvs_dsp_settings[DSP_SETTING_INDEX_BALANCE];
         settings->fader = nvs_dsp_settings[DSP_SETTING_INDEX_FADER];
 
-        log_i("\n*** DSP Settings NVS ***\nMEM: %d\nINP: %d\nMUT: %d\nMV: %d\nSV: %d\nBAL: %d\nFAD: %d\n * **DSP Settings NVS * **", settings->memory_select,
-              settings->input_select,
-              settings->mute, settings->master_volume, settings->sub_volume,
-              settings->balance, settings->fader);
-    }
-    else
-    {
+        log_i("\n*** DSP Settings NVS ***\nMEM: %d\nINP: %d\nMUT: %d\nMV: %d\nSV: %d\nBAL: %d\nFAD: %d\n * **DSP "
+              "Settings NVS * **",
+              settings->memory_select, settings->input_select, settings->mute, settings->master_volume,
+              settings->sub_volume, settings->balance, settings->fader);
+    } else {
         log_e("Failed to load DSP settings from NVS");
     }
 }
 
-void write_dsp_settings_to_nvs(struct DSP_Settings *settings)
-{
+void write_dsp_settings_to_nvs(struct DSP_Settings* settings) {
     nvs_dsp_settings[DSP_SETTING_INDEX_MEMORY_SELECT] = settings->memory_select;
     nvs_dsp_settings[DSP_SETTING_INDEX_INPUT_SELECT] = settings->input_select;
     nvs_dsp_settings[DSP_SETTING_INDEX_MUTE] = settings->mute;
@@ -89,14 +76,12 @@ void write_dsp_settings_to_nvs(struct DSP_Settings *settings)
     nvs_dsp_settings[DSP_SETTING_INDEX_BALANCE] = settings->balance;
     nvs_dsp_settings[DSP_SETTING_INDEX_FADER] = settings->fader;
     bool ok = NVS.setBlob(NVS_DSP_SETTINGS_KEY, nvs_dsp_settings, sizeof(nvs_dsp_settings));
-    if (!ok)
-    {
+    if (!ok) {
         log_e("Failed to write DSP settings to NVS");
     }
 }
 
-void init_custom_drc(void)
-{
+void init_custom_drc(void) {
     Serial.begin(115200);
 
     pinMode(DSP_PWR_EN_PIN, OUTPUT);
@@ -106,10 +91,12 @@ void init_custom_drc(void)
     digitalWrite(LED_PIN, LOW);
 
     // Get the OTA partitions that are running and the next one that it will point to
-    const esp_partition_t *running = esp_ota_get_running_partition();
-    const esp_partition_t *otaPartition = esp_ota_get_next_update_partition(NULL);
-    Serial.printf("Running partition type %d subtype %d (offset 0x%08x)\n", running->type, running->subtype, running->address);
-    Serial.printf("OTA partition will be type %d subtype %d (offset 0x%x)\n", otaPartition->type, otaPartition->subtype, otaPartition->address);
+    const esp_partition_t* running = esp_ota_get_running_partition();
+    const esp_partition_t* otaPartition = esp_ota_get_next_update_partition(NULL);
+    Serial.printf("Running partition type %d subtype %d (offset 0x%08x)\n", running->type, running->subtype,
+                  running->address);
+    Serial.printf("OTA partition will be type %d subtype %d (offset 0x%x)\n", otaPartition->type, otaPartition->subtype,
+                  otaPartition->address);
 
     Serial.printf("****** CDRC Firmware ******\n");
     Serial.printf("****** FW Version: %s *****\n", FW_VERSION);
@@ -120,14 +107,11 @@ void init_custom_drc(void)
 
     uint8_t nvs_header_in_flash[4];
     bool ok = NVS.getBlob(NVS_HEADER_KEY, nvs_header_in_flash, sizeof(nvs_header_in_flash));
-    if (memcmp(nvs_header_in_flash, NVS_Header, sizeof(nvs_header_in_flash)) != 0)
-    {
+    if (memcmp(nvs_header_in_flash, NVS_Header, sizeof(nvs_header_in_flash)) != 0) {
         log_i("Failed to find header in NVS. We will reformat the NVS parition");
-        ok = NVS.setBlob(NVS_HEADER_KEY, (uint8_t *)NVS_Header, sizeof(NVS_Header));
+        ok = NVS.setBlob(NVS_HEADER_KEY, (uint8_t*)NVS_Header, sizeof(NVS_Header));
         ok = NVS.setBlob(NVS_DSP_SETTINGS_KEY, nvs_dsp_settings, sizeof(nvs_dsp_settings));
-    }
-    else
-    {
+    } else {
         load_dsp_settings_from_nvs(&dsp_settings);
     }
 

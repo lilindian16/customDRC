@@ -10,8 +10,8 @@
 constexpr uint8_t ENCODER_1_ID = 0x01;
 constexpr uint8_t ENCODER_2_ID = 0x02;
 
-#define BUTTON_HELD_TIME_SECONDS 1
-#define ENCODER_TASK_PERIOD_MS 50
+#define BUTTON_HELD_TIME_SECONDS   1
+#define ENCODER_TASK_PERIOD_MS     50
 #define BUTTON_HELD_TICKS_REQUIRED (BUTTON_HELD_TIME_SECONDS * 1000 / ENCODER_TASK_PERIOD_MS)
 
 ESP32Encoder encoder_1(true, enc_cb);
@@ -19,28 +19,23 @@ ESP32Encoder encoder_2(true, enc_cb);
 TaskHandle_t encoder_task_handle;
 SemaphoreHandle_t encoder_1_semaphore_handle, encoder_2_semaphore_handle;
 
-struct DSP_Settings *dsp_settings_encoders;
+struct DSP_Settings* dsp_settings_encoders;
 
 volatile bool encoders_enabled = true;
 
-void encoder_task(void *pvParameters); // Forward declaration
+void encoder_task(void* pvParameters); // Forward declaration
 
-static IRAM_ATTR void enc_cb(void *arg)
-{
+static IRAM_ATTR void enc_cb(void* arg) {
     BaseType_t xYieldRequired;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    ESP32Encoder *enc = (ESP32Encoder *)arg;
+    ESP32Encoder* enc = (ESP32Encoder*)arg;
     uint8_t encoder_id = enc->get_encoder_id();
 
-    if (encoders_enabled)
-    {
-        if (encoder_id == ENCODER_1_ID)
-        {
+    if (encoders_enabled) {
+        if (encoder_id == ENCODER_1_ID) {
             xSemaphoreGiveFromISR(encoder_1_semaphore_handle, &xHigherPriorityTaskWoken);
-        }
-        else if (encoder_id == ENCODER_2_ID)
-        {
+        } else if (encoder_id == ENCODER_2_ID) {
             xSemaphoreGiveFromISR(encoder_2_semaphore_handle, &xHigherPriorityTaskWoken);
         }
     }
@@ -54,24 +49,17 @@ static IRAM_ATTR void enc_cb(void *arg)
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
-void encoder_task(void *pvParameters)
-{
+void encoder_task(void* pvParameters) {
     uint8_t button_held_ticks = 0;
     bool button_held_task_sent = false;
-    while (1)
-    {
-        if (encoders_enabled)
-        {
-            if (xSemaphoreTake(encoder_1_semaphore_handle, TickType_t(10)))
-            {
+    while (1) {
+        if (encoders_enabled) {
+            if (xSemaphoreTake(encoder_1_semaphore_handle, TickType_t(10))) {
                 int64_t encoder_1_count = encoder_1.getCount(); // Default to using encoder_1 for volume
-                if (encoder_1_count > MAX_VOLUME_VALUE)
-                {
+                if (encoder_1_count > MAX_VOLUME_VALUE) {
                     encoder_1.setCount(MAX_VOLUME_VALUE);
                     encoder_1_count = MAX_VOLUME_VALUE;
-                }
-                else if (encoder_1_count < MIN_VOLUME_VALUE)
-                {
+                } else if (encoder_1_count < MIN_VOLUME_VALUE) {
                     encoder_1.setCount(MIN_VOLUME_VALUE);
                     encoder_1_count = MIN_VOLUME_VALUE;
                 }
@@ -79,16 +67,12 @@ void encoder_task(void *pvParameters)
                 update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, encoder_1_count);
                 dsp_settings_encoders->master_volume = encoder_1_count;
             }
-            if (xSemaphoreTake(encoder_2_semaphore_handle, TickType_t(10)))
-            {
+            if (xSemaphoreTake(encoder_2_semaphore_handle, TickType_t(10))) {
                 int64_t encoder_2_count = encoder_2.getCount();
-                if (encoder_2_count > MAX_SUB_VOLUME_VALUE)
-                {
+                if (encoder_2_count > MAX_SUB_VOLUME_VALUE) {
                     encoder_2.setCount(MAX_SUB_VOLUME_VALUE);
                     encoder_2_count = MAX_SUB_VOLUME_VALUE;
-                }
-                else if (encoder_2_count < MIN_SUB_VOLUME_VALUE)
-                {
+                } else if (encoder_2_count < MIN_SUB_VOLUME_VALUE) {
                     encoder_2.setCount(MIN_SUB_VOLUME_VALUE);
                     encoder_2_count = MIN_SUB_VOLUME_VALUE;
                 }
@@ -97,30 +81,22 @@ void encoder_task(void *pvParameters)
                 dsp_settings_encoders->sub_volume = encoder_2_count;
             }
             bool current_encoder_1_sw_state = digitalRead(ENCODER_1_SW);
-            if (current_encoder_1_sw_state == LOW)
-            {
+            if (current_encoder_1_sw_state == LOW) {
                 // Button has been pressed
                 button_held_ticks++;
-                if (button_held_ticks >= BUTTON_HELD_TICKS_REQUIRED)
-                {
+                if (button_held_ticks >= BUTTON_HELD_TICKS_REQUIRED) {
                     button_held_ticks = BUTTON_HELD_TICKS_REQUIRED;
-                    if (!button_held_task_sent)
-                    {
+                    if (!button_held_task_sent) {
                         on_button_held();
                     }
                 }
-            }
-            else if (current_encoder_1_sw_state == HIGH)
-            {
+            } else if (current_encoder_1_sw_state == HIGH) {
                 // Button released
-                if (button_held_ticks >= BUTTON_HELD_TICKS_REQUIRED)
-                {
+                if (button_held_ticks >= BUTTON_HELD_TICKS_REQUIRED) {
                     // Call method only if button has been held long enough
                     on_button_released(true);
                     button_held_task_sent = false; // We can reset the flag now
-                }
-                else
-                {
+                } else {
                     button_held_ticks = 0;
                 }
             }
@@ -129,8 +105,7 @@ void encoder_task(void *pvParameters)
     }
 }
 
-void init_drc_encoders(struct DSP_Settings *settings)
-{
+void init_drc_encoders(struct DSP_Settings* settings) {
     dsp_settings_encoders = settings;
     encoder_1_semaphore_handle = xSemaphoreCreateBinary();
     encoder_2_semaphore_handle = xSemaphoreCreateBinary();
@@ -149,21 +124,17 @@ void init_drc_encoders(struct DSP_Settings *settings)
     xTaskCreatePinnedToCore(encoder_task, "ENCODER", 8000, NULL, tskIDLE_PRIORITY + 1, &encoder_task_handle, 1);
 }
 
-void disable_encoders(void)
-{
+void disable_encoders(void) {
     encoders_enabled = false;
 }
 
-void enable_encoders(void)
-{
-    if (!dsp_settings_encoders->usb_connected)
-    {
+void enable_encoders(void) {
+    if (!dsp_settings_encoders->usb_connected) {
         // Encoders cannot run while USB is plugged in and configuring DSP
         encoders_enabled = true;
     }
 }
 
-bool are_encoders_enabled(void)
-{
+bool are_encoders_enabled(void) {
     return encoders_enabled;
 }
