@@ -10,7 +10,6 @@
  */
 
 #include "Audison_AC_Link_Bus.hpp"
-#include "board_config.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h> // https: //github.com/plerup/espsoftwareserial/tree/main
 
@@ -19,96 +18,277 @@
 
 EspSoftwareSerial::UART rs485_serial_port;
 
-void Audison_AC_Link_Bus::init_ac_link_bus(RS485_Config_t *rs485_config)
-{
-    Serial.printf("****** CDRC Board Version: %s ******\n", BOARD_NAME);
-    this->tx_pin = rs485_config->rs485_tx_pin;
-    this->rx_pin = rs485_config->rs485_rx_pin;
-    this->tx_en_pin = rs485_config->rs485_tx_en_pin;
+TaskHandle_t rs485_rx_task_handle, rs485_tx_task_handle;
+SemaphoreHandle_t rs485_tx_semaphore_handle;
 
-    rs485_serial_port.begin(rs485_config->rs485_baudrate, SWSERIAL_8S1, this->rx_pin, this->tx_pin);
+struct DSP_Settings *dsp_settings_rs485;
+
+void rs485_rx_task(void *pvParameters)
+{
+    Audison_AC_Link_Bus *ac_link_bus_ptr = (Audison_AC_Link_Bus *)pvParameters;
+    uint8_t rx_buffer[255];
+    while (1)
+    {
+        memset(rx_buffer, 0, sizeof(rx_buffer)); // Clear the rx buffer
+        uint8_t bytes_read = ac_link_bus_ptr->read_rx_message(rx_buffer, sizeof(rx_buffer));
+        if (bytes_read >= 5) // Minimum valid packet count
+        {
+            uint8_t receiver = rx_buffer[0];
+            uint8_t transmitter = rx_buffer[1];
+            uint8_t message_length = rx_buffer[3];
+            uint8_t command = rx_buffer[4];
+
+            if (receiver == AC_LINK_ADDRESS_DRC) // Filter only DRC addressed messages
+            {
+                if (transmitter == AC_LINK_ADDRESS_USB_CONTROLLER)
+                {
+                    switch (command)
+                    {
+                    case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
+                        if (message_length == 7 && rx_buffer[5] == 0x0A)
+                        {
+                            dsp_settings_rs485->usb_connected = true;
+                            update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 1);
+                            log_i("USB connected. RS485 bus inactive");
+                        }
+                        break;
+
+                    case AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED:
+                        dsp_settings_rs485->usb_connected = false;
+                        ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_USB_CONTROLLER);
+                        update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 0);
+                        log_i("USB disconnected. RS485 bus active");
+                        break;
+                    default:
+                        log_i("RS485->USB->DRC, unknown command received: %02x", command);
+                        break;
+                    }
+                }
+                else if (transmitter == AC_LINK_ADDRESS_DSP_PROCESSOR)
+                {
+                    switch (command)
+                    {
+                    case AC_LINK_COMMAND_USB_CONNECTED:
+                        dsp_settings_rs485->usb_connected = true;
+                        update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 1);
+                        log_i("USB connected. RS485 bus inactive");
+                        break;
+                    default:
+                        log_i("RS485->DSP->DRC, unknown command received from DSP processor: %02x", command);
+                        break;
+                    }
+                }
+                else
+                {
+                    log_e("RS485 unknown sender: %02x", transmitter);
+                }
+            }
+            else if (receiver == AC_LINK_ADDRESS_DSP_MASTER)
+            {
+                if (transmitter == AC_LINK_ADDRESS_USB_CONTROLLER)
+                {
+                    switch (command)
+                    {
+                    case AC_LINK_COMMAND_CHANGE_DSP_MEMORY:
+                        dsp_settings_rs485->memory_select = rx_buffer[5] - 1; // Offset for DSP index 1
+                        update_web_server_parameter(DSP_SETTING_INDEX_MEMORY_SELECT, rx_buffer[5] - 1);
+                        break;
+                    case AC_LINK_COMMAND_MASTER_VOLUME:
+                        dsp_settings_rs485->master_volume = rx_buffer[5];
+                        update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, rx_buffer[5]);
+                        break;
+                    case AC_LINK_COMMAND_SUB_VOLUME_ADJUST:
+                        dsp_settings_rs485->sub_volume = rx_buffer[5];
+                        update_web_server_parameter(DSP_SETTING_INDEX_SUB_VOLUME, rx_buffer[5]);
+                        break;
+                    default:
+                        log_e("RS485->Master->USB: Unknown command received");
+                        break;
+                    }
+                }
+            }
+
+            // Print all messages on serial
+            for (uint8_t i = 0; i < bytes_read; i++)
+            {
+                Serial.print(rx_buffer[i], HEX);
+                Serial.print(" ");
+            }
+            Serial.println();
+        }
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
+}
+
+void rs485_tx_task(void *pvParameters)
+{
+    bool boot_up_completed = false;
+    Audison_AC_Link_Bus *ac_link_bus_ptr = (Audison_AC_Link_Bus *)pvParameters;
+    while (1)
+    {
+        if (!boot_up_completed)
+        {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_DSP_MASTER);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_USB_CONTROLLER);
+            boot_up_completed = true;
+        }
+        if (!dsp_settings_rs485->usb_connected)
+        {
+            ac_link_bus_ptr->check_usb_on_bus();
+        }
+        vTaskDelay(pdMS_TO_TICKS(250));
+    }
+}
+
+void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings *settings)
+{
+    dsp_settings_rs485 = settings;
+    this->tx_pin = RS485_TX_PIN;
+    this->rx_pin = RS485_RX_PIN;
+    this->tx_en_pin = RS485_TX_EN_PIN;
+
+    pinMode(this->tx_en_pin, OUTPUT);
+
+    rs485_tx_semaphore_handle = xSemaphoreCreateMutex();
+    if (rs485_tx_semaphore_handle == NULL)
+    {
+        log_e("Failed to create the RS485 tx mutex");
+        while (1)
+        {
+            ;
+        }
+    }
+
+    rs485_serial_port.begin(RS485_BAUDRATE, SWSERIAL_8S1, this->rx_pin, this->tx_pin);
+    xTaskCreatePinnedToCore(rs485_rx_task, "RS485_rx", 8000, this, tskIDLE_PRIORITY + 1, &rs485_rx_task_handle, 1);
+    xTaskCreatePinnedToCore(rs485_tx_task, "RS485_tx", 8000, this, tskIDLE_PRIORITY + 1, &rs485_tx_task_handle, 1);
     digitalWrite(this->tx_en_pin, LOW); // RX EN pin is always low, we control flow with the TX pin going high
 }
 
-void Audison_AC_Link_Bus::set_volume(uint8_t volume)
+void Audison_AC_Link_Bus::set_volume(uint8_t volume, uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/)
 {
-    if (volume <= 0x78)
+    if (volume <= MAX_VOLUME_VALUE)
     {
-        uint8_t volume_adjust_packet[2] = {VOLUME_ADJUST, volume};
-        this->write_to_audison_bus(AUDISON_DSP_RS485_ADDRESS,
-                                   AUDISON_DRC_RS485_ADDRESS,
+        uint8_t volume_adjust_packet[2] = {AC_LINK_COMMAND_MASTER_VOLUME, volume};
+        this->write_to_audison_bus(receiver_address,
+                                   AC_LINK_ADDRESS_DRC,
                                    (uint8_t *)volume_adjust_packet,
                                    sizeof(volume_adjust_packet));
     }
 }
 
-void Audison_AC_Link_Bus::set_balance(uint8_t balance_level)
+void Audison_AC_Link_Bus::set_balance(uint8_t balance_level, uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/)
 {
-    if (balance_level <= 0x24)
+    if (balance_level <= MAX_BALANCE_VALUE)
     {
-        uint8_t balance_adjust_packet[2] = {BALANCE_ADJUST, balance_level};
-        this->write_to_audison_bus(AUDISON_DSP_RS485_ADDRESS,
-                                   AUDISON_DRC_RS485_ADDRESS,
+        uint8_t balance_adjust_packet[2] = {AC_LINK_COMMAND_BALANCE_ADJUST, balance_level};
+        this->write_to_audison_bus(receiver_address,
+                                   AC_LINK_ADDRESS_DRC,
                                    (uint8_t *)balance_adjust_packet,
                                    sizeof(balance_adjust_packet));
     }
 }
 
-void Audison_AC_Link_Bus::set_fader(uint8_t fade_level)
+void Audison_AC_Link_Bus::set_fader(uint8_t fade_level, uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/)
 {
-    if (fade_level <= 0x24)
+    if (fade_level <= MAX_FADER_VALUE)
     {
-        uint8_t fader_adjust_packet[2] = {FADER_ADJUST, fade_level};
-        this->write_to_audison_bus(AUDISON_DSP_RS485_ADDRESS,
-                                   AUDISON_DRC_RS485_ADDRESS,
+        uint8_t fader_adjust_packet[2] = {AC_LINK_COMMAND_FADER_ADJUST, fade_level};
+        this->write_to_audison_bus(receiver_address,
+                                   AC_LINK_ADDRESS_DRC,
                                    (uint8_t *)fader_adjust_packet,
                                    sizeof(fader_adjust_packet));
     }
 }
 
-void Audison_AC_Link_Bus::set_sub_volume(uint8_t sub_volume)
+void Audison_AC_Link_Bus::set_sub_volume(uint8_t sub_volume, uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/)
 {
-    if (sub_volume <= 0x18)
+    if (sub_volume <= MAX_SUB_VOLUME_VALUE)
     {
-        uint8_t sub_volume_adjust_packet[2] = {SUB_VOLUME_ADJUST, sub_volume};
-        this->write_to_audison_bus(AUDISON_DSP_RS485_ADDRESS,
-                                   AUDISON_DRC_RS485_ADDRESS,
+        uint8_t sub_volume_adjust_packet[2] = {AC_LINK_COMMAND_SUB_VOLUME_ADJUST, sub_volume};
+        this->write_to_audison_bus(receiver_address,
+                                   AC_LINK_ADDRESS_DRC,
                                    (uint8_t *)sub_volume_adjust_packet,
                                    sizeof(sub_volume_adjust_packet));
     }
 }
 
+void Audison_AC_Link_Bus::check_usb_on_bus(void)
+{
+    uint8_t packet[] = {AC_LINK_COMMAND_CHECK_DEVICE_PRESENT};
+    this->write_to_audison_bus(AC_LINK_ADDRESS_USB_CONTROLLER, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+}
+
+void Audison_AC_Link_Bus::set_dsp_memory(uint8_t memory)
+{
+    // We index the DSP memory at 0 but Audison have it indexed at 1. Apply the offset here
+    uint8_t memory_corrected = memory + 1;
+    uint8_t packet[] = {AC_LINK_COMMAND_CHANGE_DSP_MEMORY, memory_corrected};
+    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+}
+
+void Audison_AC_Link_Bus::update_device_with_latest_settngs(struct DSP_Settings *settings, uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/)
+{
+    this->set_volume(settings->master_volume, receiver_address);
+    this->set_sub_volume(settings->sub_volume, receiver_address);
+    this->set_balance(settings->balance, receiver_address);
+    this->set_fader(settings->fader, receiver_address);
+}
+
 void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t *data, uint8_t data_length)
 {
-    uint8_t message_length = HEADER_SIZE_BYTES + data_length + CHECKSUM_SIZE_BYTES;
-    uint8_t message_buffer[message_length];
-    message_buffer[0] = receiver_address;
-    message_buffer[1] = transmitter_address;
-    message_buffer[2] = 0x00;
-    message_buffer[3] = message_length;
-    for (uint8_t i = 0; i < data_length; i++)
+    if (!dsp_settings_rs485->usb_connected)
     {
-        message_buffer[i + 4] = data[i];
-    }
-    /* Now we append the checksum - CheckSum8 Modulo 256 */
-    uint8_t checksum = this->calculate_checksum(message_buffer, sizeof(message_buffer) - 1); // Last byte is the checksum
-    message_buffer[message_length - 1] = checksum;
-
-    digitalWrite(this->tx_en_pin, HIGH); // TX output enable
-
-    for (uint8_t i = 0; i < message_length; i++)
-    {
-        if (i == 0)
+        uint8_t message_length = HEADER_SIZE_BYTES + data_length + CHECKSUM_SIZE_BYTES;
+        uint8_t message_buffer[message_length];
+        message_buffer[0] = receiver_address;
+        message_buffer[1] = transmitter_address;
+        message_buffer[2] = 0x00;
+        message_buffer[3] = message_length;
+        for (uint8_t i = 0; i < data_length; i++)
         {
-            rs485_serial_port.write(message_buffer[i], EspSoftwareSerial::PARITY_MARK); // Append 1 to data to show address
+            message_buffer[i + 4] = data[i];
+        }
+        /* Now we append the checksum - CheckSum8 Modulo 256 */
+        uint8_t checksum = this->calculate_checksum(message_buffer, sizeof(message_buffer) - 1); // Last byte is the checksum
+        message_buffer[message_length - 1] = checksum;
+
+        if (xSemaphoreTake(rs485_tx_semaphore_handle, (TickType_t)10) == pdTRUE)
+        {
+            digitalWrite(this->tx_en_pin, HIGH); // TX output enable
+
+            for (uint8_t i = 0; i < message_length; i++)
+            {
+                if (i == 0)
+                {
+                    rs485_serial_port.write(message_buffer[i], EspSoftwareSerial::PARITY_MARK); // Append 1 to data to show address
+                }
+                else
+                {
+                    rs485_serial_port.write(message_buffer[i], EspSoftwareSerial::PARITY_SPACE);
+                }
+            }
+
+            digitalWrite(this->tx_en_pin, LOW); // TX output disable
+            xSemaphoreGive(rs485_tx_semaphore_handle);
         }
         else
         {
-            rs485_serial_port.write(message_buffer[i], EspSoftwareSerial::PARITY_SPACE);
+            log_e("Failed to obtain RS485 TX mutex");
         }
     }
+    else
+    {
+        log_e("Can't use the RS485 bus when USB is connected to the DSP!");
+    }
+}
 
-    digitalWrite(this->tx_en_pin, LOW); // TX output disable
+void Audison_AC_Link_Bus::turn_off_main_unit(void)
+{
+    uint8_t data_packet[] = {AC_LINK_COMMAND_TURN_OFF_MAIN_UNIT};
+    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_MASTER, AC_LINK_ADDRESS_DRC, data_packet, sizeof(data_packet));
 }
 
 uint8_t Audison_AC_Link_Bus::calculate_checksum(uint8_t *data_buffer, uint8_t data_length_bytes)
