@@ -32,7 +32,7 @@ static IRAM_ATTR void enc_cb(void* arg) {
     ESP32Encoder* enc = (ESP32Encoder*)arg;
     uint8_t encoder_id = enc->get_encoder_id();
 
-    if (encoders_enabled) {
+    if (!dsp_settings_encoders->usb_connected) {
         if (encoder_id == ENCODER_1_ID) {
             xSemaphoreGiveFromISR(encoder_1_semaphore_handle, &xHigherPriorityTaskWoken);
         } else if (encoder_id == ENCODER_2_ID) {
@@ -96,8 +96,9 @@ void encoder_task(void* pvParameters) {
                     // Call method only if button has been held long enough
                     on_button_released(true);
                     button_held_task_sent = false; // We can reset the flag now
-                } else {
+                } else if (button_held_ticks >= 1) {
                     button_held_ticks = 0;
+                    on_button_clicked();
                 }
             }
         }
@@ -125,14 +126,19 @@ void init_drc_encoders(struct DSP_Settings* settings) {
 }
 
 void disable_encoders(void) {
+    encoder_1.pauseCount();
+    encoder_2.pauseCount();
     encoders_enabled = false;
 }
 
 void enable_encoders(void) {
-    if (!dsp_settings_encoders->usb_connected) {
-        // Encoders cannot run while USB is plugged in and configuring DSP
-        encoders_enabled = true;
-    }
+
+    // Encoders cannot run while USB is plugged in and configuring DSP
+    encoder_1.setCount(dsp_settings_encoders->master_volume);
+    encoder_2.setCount(dsp_settings_encoders->sub_volume);
+    encoders_enabled = true;
+    encoder_1.resumeCount();
+    encoder_2.resumeCount();
 }
 
 bool are_encoders_enabled(void) {
