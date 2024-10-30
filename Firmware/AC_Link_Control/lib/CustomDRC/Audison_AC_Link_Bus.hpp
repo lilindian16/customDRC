@@ -15,7 +15,7 @@
 #include "Custom_DRC.hpp"
 
 enum AC_Link_Address {
-    AC_LINK_ADDRESS_DSP_MCU = 0x00,
+    AC_LINK_ADDRESS_MASTER_MCU = 0x00,
     AC_LINK_ADDRESS_DSP_PROCESSOR = 0x46,
     AC_LINK_ADDRESS_COMPUTER = 0x5A,
     AC_LINK_ADDRESS_DRC = 0x80,
@@ -28,10 +28,13 @@ enum AC_Link_Command {
     AC_LINK_COMMAND_FADER_ADJUST = 0x0C,
     AC_LINK_COMMAND_SUB_VOLUME_ADJUST = 0x0D,
     AC_LINK_COMMAND_CHANGE_DSP_MEMORY = 0x0F,
+    AC_LINK_COMMAND_CHANGE_SOURCE = 0x10,
     AC_LINK_COMMAND_CHECK_DEVICE_PRESENT = 0x11,
     AC_LINK_COMMAND_DEVICE_IS_PRESENT = 0x12,
     AC_LINK_COMMAND_USB_CONNECTED = 0x13,
+    AC_LINK_COMMAND_DRC_FW_VERSION = 0x14,
     AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED = 0x35,
+    AC_LINK_COMMAND_GET_CURRENT_SOURCE_NAME = 0x6D,
     AC_LINK_COMMAND_TURN_OFF_MAIN_UNIT = 0x6E, // Unknown yet
 
 };
@@ -55,26 +58,30 @@ class Audison_AC_Link_Bus {
     /**
      * @param volume Value between mute (0x00) and max volume (0x78)
      */
-    void set_volume(uint8_t volume, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
+    void set_volume(uint8_t volume, uint8_t receiver_address = AC_LINK_ADDRESS_MASTER_MCU);
 
     /**
      * @param balance_level Balance between left (0x00) and right (0x24)
      */
-    void set_balance(uint8_t balance_level, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
+    void set_balance(uint8_t balance_level, uint8_t receiver_address = AC_LINK_ADDRESS_MASTER_MCU);
 
     /**
      * @param fade_level Fade between front (0x00) and rear (0x24)
      */
-    void set_fader(uint8_t fade_level, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
+    void set_fader(uint8_t fade_level, uint8_t receiver_address = AC_LINK_ADDRESS_MASTER_MCU);
     /**
      * @param sub_volume Value between 0x00 (mute) and 0x18 (-12dB)
      */
-    void set_sub_volume(uint8_t sub_volume, uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
+    void set_sub_volume(uint8_t sub_volume, uint8_t receiver_address = AC_LINK_ADDRESS_MASTER_MCU);
 
     /**
      * @param memory Value between 0x01 (A) and 0x02 (B)
      */
     void set_dsp_memory(uint8_t memory);
+
+    void get_current_input_source(void);
+
+    void change_source(void);
 
     void turn_off_main_unit(void);
 
@@ -83,13 +90,17 @@ class Audison_AC_Link_Bus {
      */
     void check_usb_on_bus(void);
 
-    void check_dsp_mcu_on_bus(void);
+    void check_master_mcu_on_bus(void);
+
+    void check_dsp_processor_on_bus(void);
+
+    void send_fw_version_to_usb(void);
 
     /**
      * Updates a device with the latest DRC settings
      */
     void update_device_with_latest_settngs(struct DSP_Settings* settings,
-                                           uint8_t receiver_address = AC_LINK_ADDRESS_DSP_MCU);
+                                           uint8_t receiver_address = AC_LINK_ADDRESS_MASTER_MCU);
 
     /**
      * @param data_buffer Empty buffer for data to be populated into
