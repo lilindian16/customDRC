@@ -3,9 +3,11 @@
 #include "CDRCWebServer.hpp"
 #include "DRC_Encoder.hpp"
 
+constexpr uint8_t DRC_FIRMWARE_VERSION[2] = {0x03, 0x00};
+
 /* RS485 Pinouts */
 #define RS485_TX_PIN    GPIO_NUM_18
-#define RS485_RX_PIN    GPIO_NUM_21
+#define RS485_RX_PIN    GPIO_NUM_27
 #define RS485_TX_EN_PIN GPIO_NUM_19
 #define RS485_BAUDRATE  38400
 
@@ -31,12 +33,12 @@ enum DSP_Memory_Select {
 enum DSP_Input_Select {
     DSP_INPUT_MASTER,
     DSP_INPUT_AUX,
-    DSP_INPUT_PHONE,
+    DSP_INPUT_DIGITAL_OPTICAL,
 };
 
 struct DSP_Settings {
     uint8_t memory_select = (uint8_t)DSP_MEMORY_A;
-    uint8_t input_select = (uint8_t)DSP_INPUT_MASTER;
+    char current_source[17];
     bool mute = false;
     uint8_t master_volume = 0x00;
     uint8_t sub_volume = 0x00;
@@ -47,7 +49,7 @@ struct DSP_Settings {
 
 enum DSP_Settings_Indexes {
     DSP_SETTING_INDEX_MEMORY_SELECT,
-    DSP_SETTING_INDEX_INPUT_SELECT,
+    DSP_SETTINGS_CURRENT_INPUT_SOURCE,
     DSP_SETTING_INDEX_MUTE,
     DSP_SETTING_INDEX_MASTER_VOLUME,
     DSP_SETTING_INDEX_SUB_VOLUME,
