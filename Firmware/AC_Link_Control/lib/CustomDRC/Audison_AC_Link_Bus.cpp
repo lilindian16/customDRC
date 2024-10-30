@@ -13,18 +13,30 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h> // https: //github.com/plerup/espsoftwareserial/tree/main
 
+// Macros for the AC Link Bus data packets
 #define HEADER_SIZE_BYTES   4
 #define CHECKSUM_SIZE_BYTES 1
-
-EspSoftwareSerial::UART rs485_serial_port;
-
 TaskHandle_t rs485_rx_task_handle, rs485_tx_task_handle;
 SemaphoreHandle_t rs485_tx_semaphore_handle;
-
-struct DSP_Settings* dsp_settings_rs485;
-
+EspSoftwareSerial::UART rs485_serial_port;
 bool master_mcu_is_on_bus = false; // Flag set to false, set to true when MCU acks on bus
 bool dsp_processor_is_on_bus = false;
+
+// Macros for the RX receive timeout
+#define RX_RECEIVE_TIMEOUT_SECONDS     5
+#define RX_RECEIVE_TIMEOUT_MILISECONDS RX_RECEIVE_TIMEOUT_SECONDS * 1000
+#define RX_RECEIVE_TIMEOUT_TIMER_ID    0
+TimerHandle_t rs485_rx_timeout_timer_handle;
+
+// DSP settings struct ptr
+struct DSP_Settings* dsp_settings_rs485;
+
+void on_rs485_rx_receive_timeout(TimerHandle_t xTimer) {
+    log_i("No RS485 activity. Shutting down DSP and ourself");
+    vTaskSuspend(rs485_tx_task_handle);
+    vTaskSuspend(rs485_rx_task_handle);
+    shut_down_dsp();
+}
 
 void rs485_rx_task(void* pvParameters) {
     Audison_AC_Link_Bus* ac_link_bus_ptr = (Audison_AC_Link_Bus*)pvParameters;
@@ -49,12 +61,14 @@ void rs485_rx_task(void* pvParameters) {
                                 update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 1);
                                 dsp_settings_rs485->usb_connected = true;
                                 disable_encoders();
+                                xTimerStop(rs485_rx_timeout_timer_handle, (TickType_t)10);
                                 log_i("USB connected. RS485 bus inactive");
                             }
                             break;
                         case AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED:
                             dsp_settings_rs485->usb_connected = false;
                             enable_encoders();
+                            xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
                             ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485,
                                                                                AC_LINK_ADDRESS_COMPUTER);
                             update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 0);
@@ -71,6 +85,7 @@ void rs485_rx_task(void* pvParameters) {
                                 log_i("Master MCU has joined the bus");
                                 master_mcu_is_on_bus = true;
                             }
+                            xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
                             break;
                         default:
                             log_i("RS485->MASTER_MCU->DRC, unknown command received from Master MCU "
@@ -84,8 +99,8 @@ void rs485_rx_task(void* pvParameters) {
                             if (!dsp_processor_is_on_bus) {
                                 log_i("DSP Processor has joined the bus");
                                 dsp_processor_is_on_bus = true;
-                                break;
                             }
+                            xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
                             break;
                         case AC_LINK_COMMAND_INPUT_SOURCE_NAME:
                             if (message_length == 0x16) {
@@ -125,7 +140,6 @@ void rs485_rx_task(void* pvParameters) {
                     }
                 }
             }
-
             // Print all messages on serial
             for (uint8_t i = 0; i < bytes_read; i++) {
                 Serial.print(rx_buffer[i], HEX);
@@ -156,6 +170,7 @@ void rs485_tx_task(void* pvParameters) {
             ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_COMPUTER);
             update_web_server_parameter_string(DSP_SETTINGS_CURRENT_INPUT_SOURCE, dsp_settings_rs485->current_source);
             boot_up_completed = true;
+            change_led_mode(LED_MODE_DEVICE_RUNNING);
         }
         if (!dsp_settings_rs485->usb_connected) {
             ac_link_bus_ptr->check_usb_on_bus();
@@ -186,7 +201,10 @@ void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings* settings) {
     }
 
     rs485_serial_port.begin(RS485_BAUDRATE, SWSERIAL_8S1, this->rx_pin, this->tx_pin);
-    // xTaskCreatePinnedToCore(rs485_rx_task, "RS485_rx", 16000, this, tskIDLE_PRIORITY + 1, &rs485_rx_task_handle, 1);
+    rs485_rx_timeout_timer_handle =
+        xTimerCreate("RS485 RX timeout timer", pdMS_TO_TICKS(RX_RECEIVE_TIMEOUT_MILISECONDS), pdFALSE,
+                     RX_RECEIVE_TIMEOUT_TIMER_ID, on_rs485_rx_receive_timeout);
+    xTaskCreatePinnedToCore(rs485_rx_task, "RS485_rx", 16000, this, tskIDLE_PRIORITY + 1, &rs485_rx_task_handle, 1);
     xTaskCreatePinnedToCore(rs485_tx_task, "RS485_tx", 8000, this, tskIDLE_PRIORITY + 1, &rs485_tx_task_handle, 1);
     digitalWrite(this->tx_en_pin, LOW); // RX EN pin is always low, we control flow with the TX pin going high
 }
