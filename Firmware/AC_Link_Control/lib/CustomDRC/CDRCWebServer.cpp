@@ -41,7 +41,6 @@ void handle_json_key_value(JsonPair key_value) {
         // Get the latest remote settings
         update_web_server_parameter(DSP_SETTING_INDEX_MEMORY_SELECT, dsp_settings_web_server->memory_select);
         update_web_server_parameter_string(DSP_SETTINGS_CURRENT_INPUT_SOURCE, dsp_settings_web_server->current_source);
-        update_web_server_parameter(DSP_SETTING_INDEX_MUTE, (uint8_t)dsp_settings_web_server->mute);
         update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, dsp_settings_web_server->master_volume);
         update_web_server_parameter(DSP_SETTING_INDEX_SUB_VOLUME, dsp_settings_web_server->sub_volume);
         update_web_server_parameter(DSP_SETTING_INDEX_BALANCE, dsp_settings_web_server->balance);
@@ -56,13 +55,6 @@ void handle_json_key_value(JsonPair key_value) {
         Serial.printf("*WS* dspMemory: %d\n", dspMemoryValue);
     } else if (strcmp(key_value.key().c_str(), "changeSource") == 0) {
         Audison_AC_Link.change_source();
-    } else if (strcmp(key_value.key().c_str(), "mute") == 0) {
-        bool muteValue = key_value.value();
-        Serial.printf("*WS* mute: %d\n", muteValue);
-        dsp_settings_web_server->mute = muteValue;
-        dsp_settings_web_server->master_volume = 0x00;
-        Audison_AC_Link.set_volume(0); // Still need to find a way to mute the system while remembering the old volume
-        update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, dsp_settings_web_server->master_volume);
     } else if (strcmp(key_value.key().c_str(), "masterVolume") == 0) {
         uint8_t master_volume_value = key_value.value();
         dsp_settings_web_server->master_volume = master_volume_value;
@@ -234,10 +226,6 @@ void update_web_server_parameter(uint8_t parameter, uint8_t value) {
 
             case DSP_SETTINGS_CURRENT_INPUT_SOURCE:
                 web_socket_handle.printfAll("{\"inputSelect\": %d}", value);
-                break;
-
-            case DSP_SETTING_INDEX_MUTE:
-                web_socket_handle.printfAll("{\"mute\": %d}", value);
                 break;
 
             case DSP_SETTING_INDEX_MASTER_VOLUME:
