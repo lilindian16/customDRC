@@ -15,8 +15,7 @@
         <button id="quitButton" style="display: none">Quit</button>
       </fieldset>
       <p id="busConnection">
-        <ins>Link Bus Active</ins>
-        <!-- <del>Link Bus Inactive</del> -->
+        <del>Link Bus Active</del>
       </p>
       <div class="container" id="mainBody">
         <section>
@@ -35,30 +34,16 @@
             <label htmlFor="DSPMemB">B</label>
           </fieldset>
 
-          <!-- Input Select -->
-          <fieldset>
-            <legend>Input Select:</legend>
-            <input
-              type="radio"
-              id="InputMaster"
-              value="0"
-              name="inputSelect"
-              checked
-            />
-            <label htmlFor="InputMaster">Master</label>
-            <input type="radio" id="InputAux" value="1" name="inputSelect" />
-            <label htmlFor="InputAux">AUX</label>
-            <input
-              type="radio"
-              id="InputDigitalOptical"
-              value="2"
-              name="inputSelect"
-            />
-            <label htmlFor="InputDigitalOptical">Digital Optical</label>
+          <!-- Current Input Source -->
+          <fieldset role="group">
+            <p>
+              Current Input Source:
+              <u id="currentSourceLabel"> Master </u>
+            </p>
           </fieldset>
-
+          <button id="changeSourceButton">Change Source</button>
           <!-- Mute Switch -->
-          <fieldset>
+          <!-- <fieldset>
             <label>
               <input
                 name="Mute"
@@ -69,7 +54,7 @@
               />
               Mute
             </label>
-          </fieldset>
+          </fieldset> -->
         </section>
 
         <!-- Control Inputs -->

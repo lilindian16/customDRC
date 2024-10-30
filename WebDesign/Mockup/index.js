@@ -10,6 +10,8 @@ let main_window = document.getElementById("mainBody");
 let quit_button = document.getElementById("quitButton");
 let mute_switch = document.getElementById("mute_switch");
 let input_select_radio = document.getElementsByName("InputSelect");
+let current_source_label = document.getElementById("currentSourceLabel");
+let change_source_button = document.getElementById("changeSourceButton");
 let dsp_memory_a_radio = document.getElementById("DSPMemA");
 let dsp_memory_b_radio = document.getElementById("DSPMemB");
 let ota_file_upload_button = document.getElementById("upload_ota_file_button");
@@ -71,14 +73,18 @@ function onMessage(event) {
       } else if (mem == 1) {
         dsp_memory_b_radio.checked = true;
       }
-      console.log("DSP mem change");
-    } else if (key == "inputSelect") {
-      console.log("inputSelect change");
-    } else if (key == "mute") {
-      var muted = myObj[key];
-      mute_switch.checked = Boolean(muted);
-      console.log("Mute: ", mute_switch.checked);
-    } else if (key == "masterVolume") {
+      console.log("dspMemory: ", mem);
+    } else if (key == "currentSource") {
+      let currentSource = myObj[key];
+      console.log("currentSource: ", currentSource);
+      current_source_label.innerHTML = currentSource;
+    }
+    // else if (key == "mute") {
+    //   var muted = myObj[key];
+    //   mute_switch.checked = Boolean(muted);
+    //   console.log("Mute: ", mute_switch.checked);
+    // }
+    else if (key == "masterVolume") {
       update_range_display(master_volume_range, myObj[key]);
     } else if (key == "fader") {
       update_range_display(fader_range, myObj[key]);
@@ -152,11 +158,21 @@ function on_ota_file_upload_button_clicked(event) {
   event.preventDefault();
 }
 
+function on_change_source_button_clicked(event) {
+  ws_message = "{changeSource: 1}";
+  websocket.send(ws_message);
+  console.log(ws_message);
+}
+
 // Function to be called when the window is opened
 function onload(event) {
   initWebSocket();
   init_range_inputs();
-  mute_switch.addEventListener("change", on_mute_switch_change);
+  // mute_switch.addEventListener("change", on_mute_switch_change);
+  change_source_button.addEventListener(
+    "click",
+    on_change_source_button_clicked
+  );
   document
     .getElementById("ota_form")
     .addEventListener("submit", on_ota_file_upload_button_clicked);
