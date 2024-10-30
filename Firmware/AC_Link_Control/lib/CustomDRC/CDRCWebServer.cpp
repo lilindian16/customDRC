@@ -32,12 +32,15 @@ struct DSP_Settings* dsp_settings_web_server;
 
 bool client_connected_to_websocket = false;
 
+/**
+ * Handle JSON keys and values that are received from webserver websocket
+ */
 void handle_json_key_value(JsonPair key_value) {
     if (strcmp(key_value.key().c_str(), "getRemoteSettings") == 0) {
         Serial.println("*WS* Webpage loaded. Get settings");
         // Get the latest remote settings
         update_web_server_parameter(DSP_SETTING_INDEX_MEMORY_SELECT, dsp_settings_web_server->memory_select);
-        update_web_server_parameter(DSP_SETTING_INDEX_INPUT_SELECT, dsp_settings_web_server->input_select);
+        update_web_server_parameter_string(DSP_SETTINGS_CURRENT_INPUT_SOURCE, dsp_settings_web_server->current_source);
         update_web_server_parameter(DSP_SETTING_INDEX_MUTE, (uint8_t)dsp_settings_web_server->mute);
         update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, dsp_settings_web_server->master_volume);
         update_web_server_parameter(DSP_SETTING_INDEX_SUB_VOLUME, dsp_settings_web_server->sub_volume);
@@ -51,10 +54,8 @@ void handle_json_key_value(JsonPair key_value) {
         uint8_t dspMemoryValue = key_value.value();
         dsp_settings_web_server->memory_select = dspMemoryValue;
         Serial.printf("*WS* dspMemory: %d\n", dspMemoryValue);
-    } else if (strcmp(key_value.key().c_str(), "inputSelect") == 0) {
-        uint8_t inputSelectValue = key_value.value();
-        dsp_settings_web_server->input_select = inputSelectValue;
-        Serial.printf("*WS* inputSelect: %d\n", inputSelectValue);
+    } else if (strcmp(key_value.key().c_str(), "changeSource") == 0) {
+        Audison_AC_Link.change_source();
     } else if (strcmp(key_value.key().c_str(), "mute") == 0) {
         bool muteValue = key_value.value();
         Serial.printf("*WS* mute: %d\n", muteValue);
@@ -231,7 +232,7 @@ void update_web_server_parameter(uint8_t parameter, uint8_t value) {
                 web_socket_handle.printfAll("{\"dspMemory\": %d}", value);
                 break;
 
-            case DSP_SETTING_INDEX_INPUT_SELECT:
+            case DSP_SETTINGS_CURRENT_INPUT_SOURCE:
                 web_socket_handle.printfAll("{\"inputSelect\": %d}", value);
                 break;
 
@@ -263,5 +264,16 @@ void update_web_server_parameter(uint8_t parameter, uint8_t value) {
                 log_e("Unknown web server parameter update request");
                 break;
         }
+    }
+}
+
+void update_web_server_parameter_string(uint8_t parameter, char* value_string) {
+    switch (parameter) {
+        case DSP_SETTINGS_CURRENT_INPUT_SOURCE:
+            web_socket_handle.printfAll("{\"currentSource\": \"%s\"}", value_string);
+            break;
+        default:
+            log_e("Unknown webserver parameter string update requested");
+            break;
     }
 }
