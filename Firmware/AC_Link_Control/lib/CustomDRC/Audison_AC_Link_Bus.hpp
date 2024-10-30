@@ -69,6 +69,7 @@ class Audison_AC_Link_Bus {
      * @param fade_level Fade between front (0x00) and rear (0x24)
      */
     void set_fader(uint8_t fade_level, uint8_t receiver_address = AC_LINK_ADDRESS_MASTER_MCU);
+
     /**
      * @param sub_volume Value between 0x00 (mute) and 0x18 (-12dB)
      */
@@ -79,10 +80,20 @@ class Audison_AC_Link_Bus {
      */
     void set_dsp_memory(uint8_t memory);
 
+    /**
+     * Request the current source from the DSP
+     */
     void get_current_input_source(void);
 
+    /**
+     * Request the DSP to change source. Note: we cannot dictate the requested source, the DSP just moves to the next
+     * one it decides
+     */
     void change_source(void);
 
+    /**
+     * Turn off the main unit from the remote
+     */
     void turn_off_main_unit(void);
 
     /**
@@ -90,10 +101,19 @@ class Audison_AC_Link_Bus {
      */
     void check_usb_on_bus(void);
 
+    /**
+     * Request check if the master MCU (PIC) (0x00) is on the bus
+     */
     void check_master_mcu_on_bus(void);
 
+    /**
+     * Request check to see if DSP processor (0x46) is on the bus
+     */
     void check_dsp_processor_on_bus(void);
 
+    /**
+     * Send the DRC firmware version (2 byte array) on the bus
+     */
     void send_fw_version_to_usb(void);
 
     /**
