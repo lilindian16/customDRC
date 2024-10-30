@@ -11,3 +11,4 @@ bool are_encoders_enabled(void);
 /* Declare these functions - they must be implemented in main */
 extern void on_button_held();
 extern void on_button_released(bool was_held);
+extern void on_button_clicked(void);
