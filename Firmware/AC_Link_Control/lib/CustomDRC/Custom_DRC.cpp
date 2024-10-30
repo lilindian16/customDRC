@@ -5,8 +5,6 @@
 #include <esp_ota_ops.h>
 #include "driver/rtc_io.h"
 
-#define FW_VERSION "0.0.1"
-
 #define ENCODER_1_WAKEUP_PIN_MASK (((uint64_t)1) << ((uint64_t)ENCODER_1_SW))
 #define RS485_RX_PIN_WAKEUP_MASK  (((uint64_t)1) << ((uint64_t)RS485_RX_PIN))
 
@@ -29,29 +27,55 @@ uint8_t nvs_dsp_settings[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x12};
 const uint8_t master_source_name[] = {0x20, 0x20, 0x20, 0x20, 0x20, 0x4D, 0x61, 0x73, 0x74,
                                       0x65, 0x72, 0x20, 0x20, 0x20, 0x20, 0x20, 0x00};
 
-bool shut_down_mode_enabled = false;
+LED_Mode_t led_mode = LED_MODE_BOOTUP;
 
 void blinky(void* pvParameters) {
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
     while (1) {
-        if (shut_down_mode_enabled) {
-            digitalWrite(LED_PIN, HIGH);
-            vTaskDelay(pdMS_TO_TICKS(50));
-            digitalWrite(LED_PIN, LOW);
-            vTaskDelay(pdMS_TO_TICKS(50));
-        } else {
-            digitalWrite(LED_PIN, HIGH);
-            vTaskDelay(pdMS_TO_TICKS(100));
+        switch (led_mode) {
+            case LED_MODE_DISABLED:
+                digitalWrite(LED_PIN, LOW);
+                vTaskDelay(pdMS_TO_TICKS(500));
+                break;
+            case LED_MODE_BOOTUP:
+                digitalWrite(LED_PIN, HIGH);
+                vTaskDelay(pdMS_TO_TICKS(100));
+                digitalWrite(LED_PIN, LOW);
+                vTaskDelay(pdMS_TO_TICKS(900));
+                break;
+            case LED_MODE_DEVICE_RUNNING:
+                digitalWrite(LED_PIN, HIGH);
+                vTaskDelay(pdMS_TO_TICKS(500));
+                break;
+            case LED_MODE_SHUT_DOWN_MODE:
+                digitalWrite(LED_PIN, HIGH);
+                vTaskDelay(pdMS_TO_TICKS(50));
+                digitalWrite(LED_PIN, LOW);
+                vTaskDelay(pdMS_TO_TICKS(50));
+            case LED_MODE_OTA_UPDATE:
+                digitalWrite(LED_PIN, HIGH);
+                vTaskDelay(pdMS_TO_TICKS(50));
+                digitalWrite(LED_PIN, LOW);
+                vTaskDelay(pdMS_TO_TICKS(50));
+            default:
+                vTaskDelay(pdMS_TO_TICKS(500));
+                break;
         }
     }
 }
 
+void change_led_mode(LED_Mode_t mode) {
+    led_mode = mode;
+}
+
 void on_button_held(void) {
-    shut_down_mode_enabled = true;
+    ;
 }
 
 void on_button_released(bool button_was_held) {
     if (button_was_held) {
-        shut_down_dsp();
+        ;
     }
 }
 
@@ -63,34 +87,26 @@ void load_dsp_settings_from_nvs(struct DSP_Settings* settings) {
     bool ok = NVS.getBlob(NVS_DSP_SETTINGS_KEY, nvs_dsp_settings, sizeof(nvs_dsp_settings));
     if (ok) {
         settings->memory_select = nvs_dsp_settings[DSP_SETTING_INDEX_MEMORY_SELECT];
-        // settings->current_source = nvs_dsp_settings[DSP_SETTINGS_CURRENT_INPUT_SOURCE];  // Ceprecated with Input
-        // Source string
-        settings->mute = (bool)nvs_dsp_settings[DSP_SETTING_INDEX_MUTE];
         settings->master_volume = nvs_dsp_settings[DSP_SETTING_INDEX_MASTER_VOLUME];
         settings->sub_volume = nvs_dsp_settings[DSP_SETTING_INDEX_SUB_VOLUME];
         settings->balance = nvs_dsp_settings[DSP_SETTING_INDEX_BALANCE];
         settings->fader = nvs_dsp_settings[DSP_SETTING_INDEX_FADER];
-
-        log_i("\n*** DSP Settings NVS ***\nMEM: %d\nMUT: %d\nMV: %d\nSV: %d\nBAL: %d\nFAD: %d\n",
-              settings->memory_select, settings->mute, settings->master_volume, settings->sub_volume, settings->balance,
-              settings->fader);
     } else {
         log_e("Failed to load DSP settings from NVS");
     }
 
-    ok = NVS.getBlob(NVS_INPUT_SOURCE_KEY, (uint8_t*)dsp_settings.current_source, sizeof(dsp_settings.current_source));
-    if (ok) {
-        log_i("currentSource: %s", dsp_settings.current_source);
-    } else {
+    ok = NVS.getBlob(NVS_INPUT_SOURCE_KEY, (uint8_t*)settings->current_source, sizeof(settings->current_source));
+    if (!ok) {
         log_e("Failed to get the current source from NVS");
     }
+
+    printf("\n*** DSP Settings NVS ***\n\tMEM: %d\n\tVOL: %d\n\tSUB: %d\n\tBAL: %d\n\tFAD: %d\n\tSRC: %s\n",
+           settings->memory_select, settings->master_volume, settings->sub_volume, settings->balance,
+           settings->fader, settings->current_source);
 }
 
 void write_dsp_settings_to_nvs(struct DSP_Settings* settings) {
     nvs_dsp_settings[DSP_SETTING_INDEX_MEMORY_SELECT] = settings->memory_select;
-    // nvs_dsp_settings[DSP_SETTINGS_CURRENT_INPUT_SOURCE] = settings->current_source;  // Deprecated with input
-    // source string
-    nvs_dsp_settings[DSP_SETTING_INDEX_MUTE] = settings->mute;
     nvs_dsp_settings[DSP_SETTING_INDEX_MASTER_VOLUME] = settings->master_volume;
     nvs_dsp_settings[DSP_SETTING_INDEX_SUB_VOLUME] = settings->sub_volume;
     nvs_dsp_settings[DSP_SETTING_INDEX_BALANCE] = settings->balance;
@@ -108,12 +124,11 @@ void write_dsp_settings_to_nvs(struct DSP_Settings* settings) {
 
 void init_custom_drc(void) {
     Serial.begin(115200);
-
+    rtc_gpio_deinit(RS485_RX_PIN); // De-init the RTC GPIO and re-init to regular GPIO
     pinMode(DSP_PWR_EN_PIN, OUTPUT);
-    digitalWrite(DSP_PWR_EN_PIN, LOW);
+    digitalWrite(DSP_PWR_EN_PIN, LOW); // Make sure the DSP stays powered down on bootup
 
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, LOW);
+    xTaskCreatePinnedToCore(blinky, "blinky", 8000, NULL, tskIDLE_PRIORITY + 1, &blinky_task_handle, 1);
 
     // Get the OTA partitions that are running and the next one that it will point to
     const esp_partition_t* running = esp_ota_get_running_partition();
@@ -154,23 +169,22 @@ void init_custom_drc(void) {
     Serial.println("Starting Custom DRC");
 
     Audison_AC_Link.init_ac_link_bus(&dsp_settings);
-    xTaskCreatePinnedToCore(blinky, "blinky", 8000, NULL, tskIDLE_PRIORITY + 1, &blinky_task_handle, 1);
+
     init_drc_encoders(&dsp_settings);
     web_server_init(&dsp_settings);
 }
 
-void shut_down_dsp(void)
-// We need to save the DSP settings to NVS before shutting down
-{
-    write_dsp_settings_to_nvs(&dsp_settings);
+void shut_down_dsp(void) {
+    change_led_mode(LED_MODE_SHUT_DOWN_MODE);
+    write_dsp_settings_to_nvs(&dsp_settings); // We need to save the DSP settings to NVS before shutting down
     Audison_AC_Link.turn_off_main_unit();
     digitalWrite(DSP_PWR_EN_PIN, LOW);
-    log_i("DSP shut down, now we wait 5 seconds before we put ourselves to sleep");
-    // Enable low power mode now and wake-up on activity from push-button and RX line
-    pinMode(RS485_RX_PIN, INPUT_PULLUP); // Enableb RS485 RX pin as input with pull-up resistor
     rtc_gpio_pullup_en(RS485_RX_PIN);
+    log_i("DSP shut down, now we wait 5 seconds before we put ourselves to sleep");
     delay(5000);
+    change_led_mode(LED_MODE_DISABLED);
     esp_sleep_enable_ext1_wakeup(RS485_RX_PIN_WAKEUP_MASK, ESP_EXT1_WAKEUP_ALL_LOW);
-    delay(1000);
     esp_deep_sleep_start();
+    delay(1000);
+    log_i("This should never print");
 }
