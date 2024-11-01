@@ -53,11 +53,13 @@ void blinky(void* pvParameters) {
                 vTaskDelay(pdMS_TO_TICKS(50));
                 digitalWrite(LED_PIN, LOW);
                 vTaskDelay(pdMS_TO_TICKS(50));
+                break;
             case LED_MODE_OTA_UPDATE:
                 digitalWrite(LED_PIN, HIGH);
                 vTaskDelay(pdMS_TO_TICKS(50));
                 digitalWrite(LED_PIN, LOW);
                 vTaskDelay(pdMS_TO_TICKS(50));
+                break;
             default:
                 vTaskDelay(pdMS_TO_TICKS(500));
                 break;
@@ -100,9 +102,10 @@ void load_dsp_settings_from_nvs(struct DSP_Settings* settings) {
         log_e("Failed to get the current source from NVS");
     }
 
-    printf("\n*** DSP Settings NVS ***\n\tMEM: %d\n\tVOL: %d\n\tSUB: %d\n\tBAL: %d\n\tFAD: %d\n\tSRC: %s\n",
-           settings->memory_select, settings->master_volume, settings->sub_volume, settings->balance,
-           settings->fader, settings->current_source);
+    printf("*** DSP Settings NVS ***\n\tMEM: %d\n\tVOL: %d\n\tSUB: %d\n\tBAL: %d\n\tFAD: %d\n\tSRC: %s\n*** DSP "
+           "Settings NVS ***\n",
+           settings->memory_select, settings->master_volume, settings->sub_volume, settings->balance, settings->fader,
+           settings->current_source);
 }
 
 void write_dsp_settings_to_nvs(struct DSP_Settings* settings) {
@@ -180,8 +183,8 @@ void shut_down_dsp(void) {
     Audison_AC_Link.turn_off_main_unit();
     digitalWrite(DSP_PWR_EN_PIN, LOW);
     rtc_gpio_pullup_en(RS485_RX_PIN);
-    log_i("DSP shut down, now we wait 5 seconds before we put ourselves to sleep");
-    delay(5000);
+    log_i("DSP shut down. We are going to sleep");
+    delay(100);
     change_led_mode(LED_MODE_DISABLED);
     esp_sleep_enable_ext1_wakeup(RS485_RX_PIN_WAKEUP_MASK, ESP_EXT1_WAKEUP_ALL_LOW);
     esp_deep_sleep_start();

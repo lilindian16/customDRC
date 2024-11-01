@@ -26,6 +26,8 @@ bool dsp_processor_is_on_bus = false;
 #define RX_RECEIVE_TIMEOUT_SECONDS     5
 #define RX_RECEIVE_TIMEOUT_MILISECONDS RX_RECEIVE_TIMEOUT_SECONDS * 1000
 #define RX_RECEIVE_TIMEOUT_TIMER_ID    0
+#define RX_TASK_PRIORITY               tskIDLE_PRIORITY + 2
+#define TX_TASK_PRIORITY               tskIDLE_PRIORITY + 1
 TimerHandle_t rs485_rx_timeout_timer_handle;
 
 // DSP settings struct ptr
@@ -146,8 +148,10 @@ void rs485_rx_task(void* pvParameters) {
                 Serial.print(" ");
             }
             Serial.println();
+            vTaskDelay(pdMS_TO_TICKS(50));
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(250));
         }
-        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
 
@@ -156,29 +160,22 @@ void rs485_tx_task(void* pvParameters) {
     Audison_AC_Link_Bus* ac_link_bus_ptr = (Audison_AC_Link_Bus*)pvParameters;
     while (1) {
         if (!boot_up_completed) {
-            while (!master_mcu_is_on_bus && !dsp_processor_is_on_bus) {
-                ac_link_bus_ptr->check_usb_on_bus();
-                vTaskDelay(pdMS_TO_TICKS(1000));
-                ac_link_bus_ptr->check_master_mcu_on_bus();
-                vTaskDelay(pdMS_TO_TICKS(1000));
+            while (!dsp_processor_is_on_bus) {
                 ac_link_bus_ptr->check_dsp_processor_on_bus();
-                vTaskDelay(pdMS_TO_TICKS(1000));
+                vTaskDelay(pdMS_TO_TICKS(500));
             }
-            vTaskDelay(pdMS_TO_TICKS(1000));
             ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_MASTER_MCU);
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_COMPUTER);
+            vTaskDelay(pdMS_TO_TICKS(500));
+            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_DSP_PROCESSOR);
             update_web_server_parameter_string(DSP_SETTINGS_CURRENT_INPUT_SOURCE, dsp_settings_rs485->current_source);
-            boot_up_completed = true;
             change_led_mode(LED_MODE_DEVICE_RUNNING);
+            boot_up_completed = true;
         }
         if (!dsp_settings_rs485->usb_connected) {
             ac_link_bus_ptr->check_usb_on_bus();
-            vTaskDelay(pdMS_TO_TICKS(1000));
-            ac_link_bus_ptr->check_master_mcu_on_bus();
-            vTaskDelay(pdMS_TO_TICKS(1000));
+            vTaskDelay(pdMS_TO_TICKS(500));
             ac_link_bus_ptr->check_dsp_processor_on_bus();
-            vTaskDelay(pdMS_TO_TICKS(1000));
+            vTaskDelay(pdMS_TO_TICKS(500));
         }
         vTaskDelay(pdMS_TO_TICKS(250));
     }
@@ -204,9 +201,8 @@ void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings* settings) {
     rs485_rx_timeout_timer_handle =
         xTimerCreate("RS485 RX timeout timer", pdMS_TO_TICKS(RX_RECEIVE_TIMEOUT_MILISECONDS), pdFALSE,
                      RX_RECEIVE_TIMEOUT_TIMER_ID, on_rs485_rx_receive_timeout);
-    xTaskCreatePinnedToCore(rs485_rx_task, "RS485_rx", 16000, this, tskIDLE_PRIORITY + 1, &rs485_rx_task_handle, 1);
-    xTaskCreatePinnedToCore(rs485_tx_task, "RS485_tx", 8000, this, tskIDLE_PRIORITY + 1, &rs485_tx_task_handle, 1);
-    digitalWrite(this->tx_en_pin, LOW); // RX EN pin is always low, we control flow with the TX pin going high
+    xTaskCreatePinnedToCore(rs485_rx_task, "RS485_rx", 4 * 1024, this, RX_TASK_PRIORITY, &rs485_rx_task_handle, 1);
+    xTaskCreatePinnedToCore(rs485_tx_task, "RS485_tx", 4 * 1024, this, TX_TASK_PRIORITY, &rs485_tx_task_handle, 1);
 }
 
 void Audison_AC_Link_Bus::set_volume(uint8_t volume, uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/) {
@@ -378,7 +374,7 @@ uint8_t Audison_AC_Link_Bus::read_rx_message(uint8_t* data_buffer, uint8_t buffe
             }
 
             else {
-                vTaskDelay(pdMS_TO_TICKS(100));
+                vTaskDelay(pdMS_TO_TICKS(10));
             }
         }
 

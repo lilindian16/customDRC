@@ -5,9 +5,9 @@
 	(uuid "77fe34f2-8fb9-443a-b963-d96f8958fb53")
 	(paper "A4")
 	(title_block
-		(title "CDRC - Custom DRC for Audison AC Link")
-		(date "03-09-2024")
-		(rev "A")
+		(title "CDRC - Custom DRC for Bit 10D")
+		(date "01-11-2024")
+		(rev "B")
 		(company "JS HW")
 	)
 	(lib_symbols
@@ -1119,10 +1119,31 @@
 		)
 		(uuid "f3b904bd-1198-4057-9f21-8387ad68ce0c")
 	)
-	(text_box "REVISION HISTORY:\n\nA: Initial design"
+	(text_box "ISSUES:\n- DRC requires listenting to RS485 on sleep to wake-up when DSP is powered on.\n	Requires ESP32 to assign RX pin to an RTC power domain IO (IO27 will work)"
+		(exclude_from_sim no)
+		(at 18.796 164.338 0)
+		(size 101.092 28.702)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(fill
+			(type none)
+		)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+			)
+			(justify left top)
+		)
+		(uuid "85468354-6788-4e6f-994a-f54d9cd7bce8")
+	)
+	(text_box "REVISION HISTORY:\n\nA: Initial design\nB: Changed RS485 RX connection to ESP32 from GPIO21 to GPIO27	\nRemoved solder bridge pads to control RS485_RX_EN. Confirmed working as intended"
 		(exclude_from_sim no)
 		(at 177.546 139.7 0)
-		(size 101.6 20.828)
+		(size 101.6 24.892)
 		(stroke
 			(width 0)
 			(type default)
@@ -1477,7 +1498,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5"
+		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5_ISO7380_Pad_TopOnly"
 			(at 96.52 135.89 0)
 			(effects
 				(font
@@ -1635,7 +1656,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5"
+		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5_ISO7380_Pad_TopOnly"
 			(at 96.52 148.59 0)
 			(effects
 				(font
@@ -1840,7 +1861,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5"
+		(property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5_ISO7380_Pad_TopOnly"
 			(at 96.52 142.24 0)
 			(effects
 				(font
@@ -2044,26 +2065,6 @@
 			)
 			(uuid "85adfaa1-c01f-4ace-ab85-d50d54430592")
 		)
-		(pin "GPIO39" input
-			(at 186.69 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-			(uuid "4c2f7aa3-6e62-4f8c-a5dc-048bea120336")
-		)
-		(pin "GPIO36" input
-			(at 186.69 88.9 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-			(uuid "1a0f2c9a-2001-4624-8994-0d584d12e9d7")
-		)
 		(pin "IO19" bidirectional
 			(at 119.38 101.6 180)
 			(effects
@@ -2084,16 +2085,6 @@
 			)
 			(uuid "6290544b-6b1d-4d27-be9b-042593ad8fe6")
 		)
-		(pin "IO21" bidirectional
-			(at 119.38 106.68 180)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-			(uuid "38cc5e57-0569-45ab-9dbd-5ee8c2257128")
-		)
 		(pin "IO5" output
 			(at 119.38 91.44 180)
 			(effects
@@ -2103,6 +2094,36 @@
 				(justify left)
 			)
 			(uuid "9611c733-94fe-48e8-9a8c-8259f2b22c52")
+		)
+		(pin "IO36" input
+			(at 186.69 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "b520bb2a-bee6-4080-89ea-a0d9299a3509")
+		)
+		(pin "IO39" input
+			(at 186.69 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "7683b300-158b-45dc-8d58-58e0c8342acc")
+		)
+		(pin "IO27" bidirectional
+			(at 119.38 106.68 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "1a7d0e57-48c7-454a-95a4-5591b292fdcd")
 		)
 		(instances
 			(project "CDRC"
