@@ -122,7 +122,7 @@ void init_drc_encoders(struct DSP_Settings* settings) {
     pinMode(ENCODER_1_SW, INPUT);
     pinMode(ENCODER_2_SW, INPUT);
 
-    xTaskCreatePinnedToCore(encoder_task, "ENCODER", 8000, NULL, tskIDLE_PRIORITY + 1, &encoder_task_handle, 1);
+    xTaskCreatePinnedToCore(encoder_task, "ENCODER", 8 * 1024, NULL, tskIDLE_PRIORITY + 1, &encoder_task_handle, 1);
 }
 
 void disable_encoders(void) {
