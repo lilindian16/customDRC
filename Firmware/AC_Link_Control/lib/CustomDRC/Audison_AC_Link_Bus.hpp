@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include "Custom_DRC.hpp"
+#include "driver/rmt.h"
 
 enum AC_Link_Address {
     AC_LINK_ADDRESS_MASTER_MCU = 0x00,
@@ -138,8 +139,10 @@ class Audison_AC_Link_Bus {
      * @param data Buffer for data to be sent in transaction
      * @param data_length Length of the data buffer
      */
-    void write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t* data,
-                              uint8_t data_length);
+    void write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t* data, uint8_t data_length,
+                              bool wait_for_response = false);
+
+    void parse_rx_message(uint8_t* message, uint8_t message_len);
 
     /**
      * @param data_buffer   Buffer of data to be checksummed
@@ -149,10 +152,19 @@ class Audison_AC_Link_Bus {
      */
     uint8_t calculate_checksum(uint8_t* data_buffer, uint8_t data_length_bytes);
 
+    int init_rmt(void);
+
+    void convert_byte_to_rmt_item_9bit(uint8_t byte_to_convert, bool is_address, rmt_item32_t* item_buffer);
+
+    void convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length, rmt_item32_t* item_buffer);
+
   private: // Private Variables
     int tx_pin;
     int rx_pin;
     int tx_en_pin;
+
+    bool dsp_on_bus = false;
+    uint8_t device_comms_fail_count = 0;
 };
 
 extern Audison_AC_Link_Bus Audison_AC_Link;
