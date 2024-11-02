@@ -13,10 +13,12 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h> // https: //github.com/plerup/espsoftwareserial/tree/main
 
+#include <driver/rmt.h>
+
 // Macros for the AC Link Bus data packets
 #define HEADER_SIZE_BYTES   4
 #define CHECKSUM_SIZE_BYTES 1
-TaskHandle_t rs485_rx_task_handle, rs485_tx_task_handle;
+TaskHandle_t rs485_tx_task_handle;
 SemaphoreHandle_t rs485_tx_semaphore_handle;
 EspSoftwareSerial::UART rs485_serial_port;
 bool master_mcu_is_on_bus = false; // Flag set to false, set to true when MCU acks on bus
@@ -26,7 +28,6 @@ bool dsp_processor_is_on_bus = false;
 #define RX_RECEIVE_TIMEOUT_SECONDS     5
 #define RX_RECEIVE_TIMEOUT_MILISECONDS RX_RECEIVE_TIMEOUT_SECONDS * 1000
 #define RX_RECEIVE_TIMEOUT_TIMER_ID    0
-#define RX_TASK_PRIORITY               tskIDLE_PRIORITY + 2
 #define TX_TASK_PRIORITY               tskIDLE_PRIORITY + 1
 TimerHandle_t rs485_rx_timeout_timer_handle;
 
@@ -36,121 +37,110 @@ struct DSP_Settings* dsp_settings_rs485;
 void on_rs485_rx_receive_timeout(TimerHandle_t xTimer) {
     log_i("No RS485 activity. Shutting down DSP and ourself");
     vTaskSuspend(rs485_tx_task_handle);
-    vTaskSuspend(rs485_rx_task_handle);
     shut_down_dsp();
 }
 
-void rs485_rx_task(void* pvParameters) {
-    Audison_AC_Link_Bus* ac_link_bus_ptr = (Audison_AC_Link_Bus*)pvParameters;
-    uint8_t rx_buffer[255];
-    while (1) {
-        memset(rx_buffer, 0, sizeof(rx_buffer)); // Clear the rx buffer
-        uint8_t bytes_read = ac_link_bus_ptr->read_rx_message(rx_buffer, sizeof(rx_buffer));
-        if (bytes_read >= 5) // Minimum valid packet count
-        {
-            uint8_t receiver = rx_buffer[0];
-            uint8_t transmitter = rx_buffer[1];
-            uint8_t message_length = rx_buffer[3];
-            uint8_t command = rx_buffer[4];
+void Audison_AC_Link_Bus::parse_rx_message(uint8_t* message, uint8_t message_len) {
+    if (message_len > 5) {
+        uint8_t receiver = message[0];
+        uint8_t transmitter = message[1];
+        uint8_t message_length = message[3];
+        uint8_t command = message[4];
 
-            if (receiver == AC_LINK_ADDRESS_DRC) // Filter only DRC addressed messages
-            {
-                if (transmitter == AC_LINK_ADDRESS_COMPUTER) {
-                    switch (command) {
-                        case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
-                            if (message_length == 7 && rx_buffer[5] == 0x0A) {
-                                ac_link_bus_ptr->send_fw_version_to_usb();
-                                update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 1);
-                                dsp_settings_rs485->usb_connected = true;
-                                disable_encoders();
-                                xTimerStop(rs485_rx_timeout_timer_handle, (TickType_t)10);
-                                log_i("USB connected. RS485 bus inactive");
-                            }
-                            break;
-                        case AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED:
-                            dsp_settings_rs485->usb_connected = false;
-                            enable_encoders();
-                            xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
-                            ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485,
-                                                                               AC_LINK_ADDRESS_COMPUTER);
-                            update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 0);
-                            log_i("USB disconnected. RS485 bus active");
-                            break;
-                        default:
-                            log_i("RS485->USB->DRC, unknown command received: %02x", command);
-                            break;
-                    }
-                } else if (transmitter == AC_LINK_ADDRESS_MASTER_MCU) {
-                    switch (command) {
-                        case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
-                            if (!master_mcu_is_on_bus) {
-                                log_i("Master MCU has joined the bus");
-                                master_mcu_is_on_bus = true;
-                            }
-                            xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
-                            break;
-                        default:
-                            log_i("RS485->MASTER_MCU->DRC, unknown command received from Master MCU "
-                                  "processor: %02x",
-                                  command);
-                            break;
-                    }
-                } else if (transmitter == AC_LINK_ADDRESS_DSP_PROCESSOR) {
-                    switch (command) {
-                        case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
-                            if (!dsp_processor_is_on_bus) {
-                                log_i("DSP Processor has joined the bus");
-                                dsp_processor_is_on_bus = true;
-                            }
-                            xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
-                            break;
-                        case AC_LINK_COMMAND_INPUT_SOURCE_NAME:
-                            if (message_length == 0x16) {
-                                // Copy the source name to the internal buffer
-                                memcpy(dsp_settings_rs485->current_source, &rx_buffer[5], 16);
-                                update_web_server_parameter_string(DSP_SETTINGS_CURRENT_INPUT_SOURCE,
-                                                                   dsp_settings_rs485->current_source);
-                                log_i("Current input source: %s", dsp_settings_rs485->current_source);
-                            }
-                            break;
-                        default:
-                            log_i("RS485->DSP_Pros->DRC, unknown command received by DSP processor");
-                            break;
-                    }
-                } else {
-                    log_e("RS485 unknown sender: %02x", transmitter);
+        // Print all messages on serial
+        for (uint8_t i = 0; i < message_len; i++) {
+            Serial.print(message[i], HEX);
+            Serial.print(" ");
+        }
+        Serial.println();
+
+        if (receiver == AC_LINK_ADDRESS_DRC) // Filter only DRC addressed messages
+        {
+            if (transmitter == AC_LINK_ADDRESS_COMPUTER) {
+                switch (command) {
+                    case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
+                        if (message_length == 7 && message[5] == 0x0A) {
+                            this->send_fw_version_to_usb();
+                            update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 1);
+                            dsp_settings_rs485->usb_connected = true;
+                            disable_encoders();
+                            xTimerStop(rs485_rx_timeout_timer_handle, (TickType_t)10);
+                            log_i("USB connected. RS485 bus inactive");
+                        }
+                        break;
+                    case AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED:
+                        dsp_settings_rs485->usb_connected = false;
+                        enable_encoders();
+                        xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
+                        this->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_COMPUTER);
+                        update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 0);
+                        log_i("USB disconnected. RS485 bus active");
+                        break;
+                    default:
+                        log_i("RS485->USB->DRC, unknown command received: %02x", command);
+                        break;
                 }
-            } else if (receiver == AC_LINK_ADDRESS_MASTER_MCU) {
-                if (transmitter == AC_LINK_ADDRESS_COMPUTER) {
-                    // Computer is communuicating to master MCU via Bit Tune software
-                    switch (command) {
-                        case AC_LINK_COMMAND_CHANGE_DSP_MEMORY:
-                            dsp_settings_rs485->memory_select = rx_buffer[5] - 1; // Offset for DSP index 1
-                            update_web_server_parameter(DSP_SETTING_INDEX_MEMORY_SELECT, rx_buffer[5] - 1);
-                            break;
-                        case AC_LINK_COMMAND_MASTER_VOLUME:
-                            dsp_settings_rs485->master_volume = rx_buffer[5];
-                            update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, rx_buffer[5]);
-                            break;
-                        case AC_LINK_COMMAND_SUB_VOLUME_ADJUST:
-                            dsp_settings_rs485->sub_volume = rx_buffer[5];
-                            update_web_server_parameter(DSP_SETTING_INDEX_SUB_VOLUME, rx_buffer[5]);
-                            break;
-                        default:
-                            log_e("RS485->Master->USB: Unknown command received");
-                            break;
-                    }
+            } else if (transmitter == AC_LINK_ADDRESS_MASTER_MCU) {
+                switch (command) {
+                    case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
+                        if (!master_mcu_is_on_bus) {
+                            log_i("Master MCU has joined the bus");
+                            master_mcu_is_on_bus = true;
+                        }
+                        xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
+                        break;
+                    default:
+                        log_i("RS485->MASTER_MCU->DRC, unknown command received from Master MCU "
+                              "processor: %02x",
+                              command);
+                        break;
+                }
+            } else if (transmitter == AC_LINK_ADDRESS_DSP_PROCESSOR) {
+                switch (command) {
+                    case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
+                        if (!dsp_processor_is_on_bus) {
+                            log_i("DSP Processor has joined the bus");
+                            dsp_processor_is_on_bus = true;
+                        }
+                        xTimerReset(rs485_rx_timeout_timer_handle, (TickType_t)10);
+                        break;
+                    case AC_LINK_COMMAND_INPUT_SOURCE_NAME:
+                        if (message_length == 0x16) {
+                            // Copy the source name to the internal buffer
+                            memcpy(dsp_settings_rs485->current_source, &message[5], 16);
+                            update_web_server_parameter_string(DSP_SETTINGS_CURRENT_INPUT_SOURCE,
+                                                               dsp_settings_rs485->current_source);
+                            log_i("Current input source: %s", dsp_settings_rs485->current_source);
+                        }
+                        break;
+                    default:
+                        log_i("RS485->DSP_Pros->DRC, unknown command received by DSP processor");
+                        break;
+                }
+            } else {
+                log_e("RS485 unknown sender: %02x", transmitter);
+            }
+        } else if (receiver == AC_LINK_ADDRESS_MASTER_MCU) {
+            if (transmitter == AC_LINK_ADDRESS_COMPUTER) {
+                // Computer is communuicating to master MCU via Bit Tune software
+                switch (command) {
+                    case AC_LINK_COMMAND_CHANGE_DSP_MEMORY:
+                        dsp_settings_rs485->memory_select = message[5] - 1; // Offset for DSP index 1
+                        update_web_server_parameter(DSP_SETTING_INDEX_MEMORY_SELECT, message[5] - 1);
+                        break;
+                    case AC_LINK_COMMAND_MASTER_VOLUME:
+                        dsp_settings_rs485->master_volume = message[5];
+                        update_web_server_parameter(DSP_SETTING_INDEX_MASTER_VOLUME, message[5]);
+                        break;
+                    case AC_LINK_COMMAND_SUB_VOLUME_ADJUST:
+                        dsp_settings_rs485->sub_volume = message[5];
+                        update_web_server_parameter(DSP_SETTING_INDEX_SUB_VOLUME, message[5]);
+                        break;
+                    default:
+                        log_e("RS485->Master->USB: Unknown command received");
+                        break;
                 }
             }
-            // Print all messages on serial
-            for (uint8_t i = 0; i < bytes_read; i++) {
-                Serial.print(rx_buffer[i], HEX);
-                Serial.print(" ");
-            }
-            Serial.println();
-            vTaskDelay(pdMS_TO_TICKS(50));
-        } else {
-            vTaskDelay(pdMS_TO_TICKS(250));
         }
     }
 }
@@ -179,30 +169,6 @@ void rs485_tx_task(void* pvParameters) {
         }
         vTaskDelay(pdMS_TO_TICKS(250));
     }
-}
-
-void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings* settings) {
-    dsp_settings_rs485 = settings;
-    this->tx_pin = RS485_TX_PIN;
-    this->rx_pin = RS485_RX_PIN;
-    this->tx_en_pin = RS485_TX_EN_PIN;
-
-    pinMode(this->tx_en_pin, OUTPUT);
-
-    rs485_tx_semaphore_handle = xSemaphoreCreateMutex();
-    if (rs485_tx_semaphore_handle == NULL) {
-        log_e("Failed to create the RS485 tx mutex");
-        while (1) {
-            ;
-        }
-    }
-
-    rs485_serial_port.begin(RS485_BAUDRATE, SWSERIAL_8S1, this->rx_pin, this->tx_pin);
-    rs485_rx_timeout_timer_handle =
-        xTimerCreate("RS485 RX timeout timer", pdMS_TO_TICKS(RX_RECEIVE_TIMEOUT_MILISECONDS), pdFALSE,
-                     RX_RECEIVE_TIMEOUT_TIMER_ID, on_rs485_rx_receive_timeout);
-    xTaskCreatePinnedToCore(rs485_rx_task, "RS485_rx", 4 * 1024, this, RX_TASK_PRIORITY, &rs485_rx_task_handle, 1);
-    xTaskCreatePinnedToCore(rs485_tx_task, "RS485_tx", 4 * 1024, this, TX_TASK_PRIORITY, &rs485_tx_task_handle, 1);
 }
 
 void Audison_AC_Link_Bus::set_volume(uint8_t volume, uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/) {
@@ -239,17 +205,17 @@ void Audison_AC_Link_Bus::set_sub_volume(uint8_t sub_volume, uint8_t receiver_ad
 
 void Audison_AC_Link_Bus::check_usb_on_bus(void) {
     uint8_t packet[] = {AC_LINK_COMMAND_CHECK_DEVICE_PRESENT};
-    this->write_to_audison_bus(AC_LINK_ADDRESS_COMPUTER, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+    this->write_to_audison_bus(AC_LINK_ADDRESS_COMPUTER, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), true);
 }
 
 void Audison_AC_Link_Bus::check_master_mcu_on_bus(void) {
     uint8_t packet[] = {AC_LINK_COMMAND_CHECK_DEVICE_PRESENT};
-    this->write_to_audison_bus(AC_LINK_ADDRESS_MASTER_MCU, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+    this->write_to_audison_bus(AC_LINK_ADDRESS_MASTER_MCU, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), true);
 }
 
 void Audison_AC_Link_Bus::check_dsp_processor_on_bus(void) {
     uint8_t packet[] = {AC_LINK_COMMAND_CHECK_DEVICE_PRESENT};
-    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), true);
 }
 
 void Audison_AC_Link_Bus::send_fw_version_to_usb(void) {
@@ -267,13 +233,15 @@ void Audison_AC_Link_Bus::set_dsp_memory(uint8_t memory) {
 
 void Audison_AC_Link_Bus::get_current_input_source(void) {
     uint8_t packet[] = {AC_LINK_COMMAND_GET_CURRENT_SOURCE_NAME};
-    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), true);
 }
 
 void Audison_AC_Link_Bus::change_source(void) {
     // Request the unit to change the source
     uint8_t packet[] = {AC_LINK_COMMAND_CHANGE_SOURCE, 0x00};
     this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+    vTaskDelay(pdMS_TO_TICKS(100));
+    this->get_current_input_source();
 }
 
 void Audison_AC_Link_Bus::update_device_with_latest_settngs(struct DSP_Settings* settings,
@@ -282,46 +250,6 @@ void Audison_AC_Link_Bus::update_device_with_latest_settngs(struct DSP_Settings*
     this->set_sub_volume(settings->sub_volume, receiver_address);
     this->set_balance(settings->balance, receiver_address);
     this->set_fader(settings->fader, receiver_address);
-}
-
-void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t* data,
-                                               uint8_t data_length) {
-    if (!dsp_settings_rs485->usb_connected) {
-        uint8_t message_length = HEADER_SIZE_BYTES + data_length + CHECKSUM_SIZE_BYTES;
-        uint8_t message_buffer[message_length];
-        message_buffer[0] = receiver_address;
-        message_buffer[1] = transmitter_address;
-        message_buffer[2] = 0x00;
-        message_buffer[3] = message_length;
-        for (uint8_t i = 0; i < data_length; i++) {
-            message_buffer[i + 4] = data[i];
-        }
-        /* Now we append the checksum - CheckSum8 Modulo 256 */
-        uint8_t checksum = this->calculate_checksum(message_buffer,
-                                                    sizeof(message_buffer) - 1); // Last byte is the checksum
-        message_buffer[message_length - 1] = checksum;
-
-        if (xSemaphoreTake(rs485_tx_semaphore_handle, (TickType_t)10) == pdTRUE) {
-            digitalWrite(this->tx_en_pin, HIGH); // TX output enable
-
-            for (uint8_t i = 0; i < message_length; i++) {
-                if (i == 0) {
-                    rs485_serial_port.write(message_buffer[i],
-                                            EspSoftwareSerial::PARITY_MARK); // Append 1 to data to
-                                                                             // show address
-                } else {
-                    rs485_serial_port.write(message_buffer[i], EspSoftwareSerial::PARITY_SPACE);
-                }
-            }
-
-            digitalWrite(this->tx_en_pin, LOW); // TX output disable
-            xSemaphoreGive(rs485_tx_semaphore_handle);
-        } else {
-            log_e("Failed to obtain RS485 TX mutex");
-        }
-    } else {
-        log_e("Can't use the RS485 bus when USB is connected to the DSP!");
-    }
 }
 
 void Audison_AC_Link_Bus::turn_off_main_unit(void) {
@@ -339,6 +267,70 @@ uint8_t Audison_AC_Link_Bus::calculate_checksum(uint8_t* data_buffer, uint8_t da
     return checksum;
 }
 
+void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t* data,
+                                               uint8_t data_length, bool wait_for_response /*default=false*/) {
+    if (!dsp_settings_rs485->usb_connected) {
+        uint8_t message_length = HEADER_SIZE_BYTES + data_length + CHECKSUM_SIZE_BYTES;
+        uint8_t message_buffer[message_length];
+        message_buffer[0] = receiver_address;
+        message_buffer[1] = transmitter_address;
+        message_buffer[2] = 0x00;
+        message_buffer[3] = message_length;
+        for (uint8_t i = 0; i < data_length; i++) {
+            message_buffer[i + 4] = data[i];
+        }
+        /* Now we append the checksum - CheckSum8 Modulo 256 */
+        uint8_t checksum = this->calculate_checksum(message_buffer,
+                                                    sizeof(message_buffer) - 1); // Last byte is the checksum
+        message_buffer[message_length - 1] = checksum;
+
+        if (xSemaphoreTake(rs485_tx_semaphore_handle, TickType_t(100)) == pdTRUE) {
+            digitalWrite(this->tx_en_pin, HIGH); // TX output enable
+            for (uint8_t i = 0; i < message_length; i++) {
+                if (i == 0) {
+                    rs485_serial_port.write(message_buffer[i],
+                                            EspSoftwareSerial::PARITY_MARK); // Append 1 to data to
+                                                                             // show address
+                } else {
+                    rs485_serial_port.write(message_buffer[i], EspSoftwareSerial::PARITY_SPACE);
+                }
+            }
+            digitalWrite(this->tx_en_pin, LOW); // TX output disable
+
+            // We can read what we just sent first
+            uint8_t transmitted_message[message_length];
+            uint8_t bytes_to_read = this->read_rx_message(transmitted_message, sizeof(transmitted_message));
+            if (bytes_to_read != sizeof(transmitted_message)) {
+                log_e("RS485 ERROR: TX did not send the correct amount of bytes");
+            } else if (memcmp(message_buffer, transmitted_message, sizeof(message_buffer)) != 0) {
+                log_e("RS485 ERROR: Bytes sent not matching");
+            } else {
+                for (uint8_t i = 0; i < sizeof(transmitted_message); i++) {
+                    Serial.print(transmitted_message[i], HEX);
+                    Serial.print(" ");
+                }
+                Serial.println();
+            }
+
+            if (wait_for_response) {
+                vTaskDelay(pdMS_TO_TICKS(250));
+                uint8_t received_message[250];
+                uint8_t bytes_to_read = this->read_rx_message(received_message, sizeof(received_message));
+                if (bytes_to_read > 5) {
+                    this->parse_rx_message(received_message, bytes_to_read);
+                }
+            }
+            xSemaphoreGive(rs485_tx_semaphore_handle);
+        } else {
+            log_e("Failed to obtain RS485 TX mutex");
+        }
+    }
+
+    else {
+        log_e("Can't use the RS485 bus when USB is connected to the DSP!");
+    }
+}
+
 uint8_t Audison_AC_Link_Bus::read_rx_message(uint8_t* data_buffer, uint8_t buffer_length) {
     uint8_t bytes_to_read = rs485_serial_port.available();
     if (bytes_to_read) {
@@ -347,41 +339,117 @@ uint8_t Audison_AC_Link_Bus::read_rx_message(uint8_t* data_buffer, uint8_t buffe
         bool transmitter_address_found = false;
         bool message_length_found = false;
         uint8_t total_message_length = 0;
-        uint8_t rx_data_buffer[255];
 
-        while (!message_completed) {
-            if (rs485_serial_port.available()) {
-                uint8_t data = rs485_serial_port.read();
-                if (!transmitter_address_found && rs485_serial_port.readParity() == true) {
-                    rx_data_buffer[message_index] = data; // We have the transmitter address
-                    transmitter_address_found = true;
-                } else if (transmitter_address_found) // We are receiving a message
+        while (rs485_serial_port.available()) {
+            uint8_t data = rs485_serial_port.read();
+            if (!transmitter_address_found && rs485_serial_port.readParity() == true) {
+                data_buffer[message_index] = data; // We have the transmitter address
+                transmitter_address_found = true;
+            } else if (transmitter_address_found) // We are receiving a message
+            {
+                message_index++;
+                data_buffer[message_index] = data;
+                if (!message_length_found && message_index == 3) // The total length of message
                 {
-                    message_index++;
-                    rx_data_buffer[message_index] = data;
-                    if (!message_length_found && message_index == 3) // The total length of message
-                    {
-                        message_length_found = true;
-                        total_message_length = data;
-                    } else if (message_length_found && message_index == total_message_length - 1) // Message complete
-                    {
-                        if (buffer_length >= total_message_length) {
-                            memcpy(data_buffer, rx_data_buffer, total_message_length);
-                            message_completed = true;
-                        }
+                    message_length_found = true;
+                    total_message_length = data;
+                } else if (message_length_found && message_index == total_message_length - 1) // Message
+                                                                                              // complete
+                {
+                    if (buffer_length >= total_message_length) {
+                        message_completed = true;
+                        return total_message_length;
                     }
                 }
             }
-
-            else {
-                vTaskDelay(pdMS_TO_TICKS(10));
-            }
         }
-
         return total_message_length;
-    }
-
-    else {
+    } else {
         return 0;
+    }
+}
+
+void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings* settings) {
+    dsp_settings_rs485 = settings;
+    this->tx_pin = RS485_TX_PIN;
+    this->rx_pin = RS485_RX_PIN;
+    this->tx_en_pin = RS485_TX_EN_PIN;
+
+    pinMode(this->tx_en_pin, OUTPUT);
+
+    // rs485_tx_semaphore_handle = xSemaphoreCreateMutex();
+    // if (rs485_tx_semaphore_handle == NULL) {
+    //     log_e("Failed to create the RS485 tx mutex");
+    //     while (1) {
+    //         ;
+    //     }
+    // }
+
+    // rs485_serial_port.begin(RS485_BAUDRATE, SWSERIAL_8S1, this->rx_pin, this->tx_pin);
+    // rs485_serial_port.flush();
+    // rs485_rx_timeout_timer_handle =
+    //     xTimerCreate("RS485 RX timeout timer", pdMS_TO_TICKS(RX_RECEIVE_TIMEOUT_MILISECONDS), pdFALSE,
+    //                  RX_RECEIVE_TIMEOUT_TIMER_ID, on_rs485_rx_receive_timeout);
+    // xTaskCreatePinnedToCore(rs485_tx_task, "RS485_tx", 8 * 1024, this, TX_TASK_PRIORITY, &rs485_tx_task_handle, 1);
+
+    this->init_rmt();
+}
+
+void convert_byte_to_rmt_item_9bit(uint8_t byte_to_convert, bool is_address, rmt_item32_t* item_buffer) {
+    // NOTE: UART protocol requires LSB format
+    uint8_t item_index = 0;
+    uint16_t data = (byte_to_convert << 1); // Add the start bit
+    if (is_address) {                       // Add the address flag
+        data |= (1 << 9);
+    } else {
+        data = (data << 9); // Add the data flag instead
+    }
+    data |= (0b11 << 10);      // Add the stop bit and extra idle bit
+    Serial.println(data, BIN); // Make sure the frame is correct
+
+    for (uint8_t i = 0; i < 11; i += 2) {
+        item_buffer[item_index].duration0 = 50;
+        item_buffer[item_index].level0 = (data >> i) & 0b1;
+        item_buffer[item_index].duration1 = 50;
+        item_buffer[item_index].level1 = (data >> (i + 1)) & 0b1;
+        Serial.print(item_buffer[item_index].level0, BIN);
+        Serial.print("");
+        Serial.print(item_buffer[item_index].level1, BIN);
+        Serial.print("");
+        item_index++;
+    }
+    Serial.println();
+}
+
+#include "esp_check.h"
+#include "esp_log.h"
+static const char* TAG = "rmt-uart";
+
+#define RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA 6
+
+int Audison_AC_Link_Bus::init_rmt(void) {
+    const int RMT_DIV = APB_CLK_FREQ / 50 / 38400;
+    const int RMT_TICK = APB_CLK_FREQ / RMT_DIV;
+    uint16_t bit_len = RMT_TICK / 38400;
+    ESP_RETURN_ON_FALSE(((10UL * RMT_TICK / 38400) < 0xFFFF), ESP_FAIL, TAG,
+                        "rmt tick too long, reconfigure 'RMT_DIV'");
+    ESP_RETURN_ON_FALSE(((RMT_TICK / 38400) > 49), ESP_FAIL, TAG, "rmt tick too long, reconfigure 'RMT_DIV'");
+    ESP_RETURN_ON_FALSE(((RMT_TICK / 38400 / 2) < 0xFF), ESP_FAIL, TAG, "baud rate too slow, reconfigure 'RMT_DIV'");
+    log_i("baud=%d rmt_div=%d rmt_tick=%d, bit_len=%i", 38400, RMT_DIV, RMT_TICK, bit_len);
+    rmt_config_t config = RMT_DEFAULT_CONFIG_TX(RS485_TX_PIN, RMT_CHANNEL_0);
+    config.tx_config.carrier_en = false;               // Disable the carrier frequency
+    config.tx_config.idle_output_en = true;            // Enable idle control
+    config.tx_config.idle_level = RMT_IDLE_LEVEL_HIGH; // Enable high idle (UART spec)
+    config.clk_div = RMT_DIV;
+
+    ESP_ERROR_CHECK(rmt_config(&config));
+    ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 0));
+
+    while (1) {
+        rmt_item32_t byte_rmt_items_9bits[RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA];
+        convert_byte_to_rmt_item_9bit(0x41, true, byte_rmt_items_9bits);
+        ESP_ERROR_CHECK(rmt_write_items(RMT_CHANNEL_0, byte_rmt_items_9bits,
+                                        sizeof(byte_rmt_items_9bits) / sizeof(byte_rmt_items_9bits[0]), true));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
