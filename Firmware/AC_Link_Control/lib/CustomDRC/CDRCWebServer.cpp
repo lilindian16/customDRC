@@ -51,8 +51,9 @@ void handle_json_key_value(JsonPair key_value) {
         Serial.printf("*WS* password: %s\n", password.c_str());
     } else if (strcmp(key_value.key().c_str(), "dspMemory") == 0) {
         uint8_t dspMemoryValue = key_value.value();
-        dsp_settings_web_server->memory_select = dspMemoryValue;
         Serial.printf("*WS* dspMemory: %d\n", dspMemoryValue);
+        Audison_AC_Link.set_dsp_memory(dspMemoryValue);
+        dsp_settings_web_server->memory_select = dspMemoryValue;
     } else if (strcmp(key_value.key().c_str(), "changeSource") == 0) {
         Audison_AC_Link.change_source();
     } else if (strcmp(key_value.key().c_str(), "masterVolume") == 0) {
