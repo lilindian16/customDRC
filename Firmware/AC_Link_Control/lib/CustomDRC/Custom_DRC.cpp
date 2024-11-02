@@ -183,8 +183,8 @@ void shut_down_dsp(void) {
     Audison_AC_Link.turn_off_main_unit();
     digitalWrite(DSP_PWR_EN_PIN, LOW);
     rtc_gpio_pullup_en(RS485_RX_PIN);
-    log_i("DSP shut down. We are going to sleep");
-    delay(100);
+    log_i("DSP shut down. We are going to sleep in 5 seconds");
+    delay(5000);
     change_led_mode(LED_MODE_DISABLED);
     esp_sleep_enable_ext1_wakeup(RS485_RX_PIN_WAKEUP_MASK, ESP_EXT1_WAKEUP_ALL_LOW);
     esp_deep_sleep_start();
