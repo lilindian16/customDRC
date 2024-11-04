@@ -130,6 +130,8 @@ class Audison_AC_Link_Bus {
      */
     uint8_t read_rx_message(uint8_t* data_buffer, uint8_t buffer_length);
 
+    void parse_rx_message(uint8_t* message, uint8_t message_len);
+
   public:  // Public Variables
   private: // Private functions
     /**
@@ -141,8 +143,6 @@ class Audison_AC_Link_Bus {
      */
     void write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t* data, uint8_t data_length,
                               bool wait_for_response = false);
-
-    void parse_rx_message(uint8_t* message, uint8_t message_len);
 
     /**
      * @param data_buffer   Buffer of data to be checksummed
