@@ -35,32 +35,45 @@ void blinky(void* pvParameters) {
     while (1) {
         switch (led_mode) {
             case LED_MODE_DISABLED:
+                // LED is fully off
                 digitalWrite(LED_PIN, LOW);
                 vTaskDelay(pdMS_TO_TICKS(500));
                 break;
             case LED_MODE_BOOTUP:
+                // LED fast flash
                 digitalWrite(LED_PIN, HIGH);
                 vTaskDelay(pdMS_TO_TICKS(100));
                 digitalWrite(LED_PIN, LOW);
                 vTaskDelay(pdMS_TO_TICKS(900));
                 break;
             case LED_MODE_DEVICE_RUNNING:
+                // LED solid
                 digitalWrite(LED_PIN, HIGH);
                 vTaskDelay(pdMS_TO_TICKS(500));
                 break;
             case LED_MODE_SHUT_DOWN_MODE:
+                // LED rapid flash
                 digitalWrite(LED_PIN, HIGH);
                 vTaskDelay(pdMS_TO_TICKS(50));
                 digitalWrite(LED_PIN, LOW);
                 vTaskDelay(pdMS_TO_TICKS(50));
                 break;
+            case LED_MODE_USB_CONNECTED:
+                // LED quick blink
+                digitalWrite(LED_PIN, HIGH);
+                vTaskDelay(pdMS_TO_TICKS(50));
+                digitalWrite(LED_PIN, LOW);
+                vTaskDelay(pdMS_TO_TICKS(1950));
+                break;
             case LED_MODE_OTA_UPDATE:
+                // LED rapid flash
                 digitalWrite(LED_PIN, HIGH);
                 vTaskDelay(pdMS_TO_TICKS(50));
                 digitalWrite(LED_PIN, LOW);
                 vTaskDelay(pdMS_TO_TICKS(50));
                 break;
             default:
+
                 vTaskDelay(pdMS_TO_TICKS(500));
                 break;
         }
