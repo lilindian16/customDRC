@@ -23,13 +23,14 @@ static const char* TAG = "rmt-uart";
 // Macros for the AC Link Bus data packets
 #define HEADER_SIZE_BYTES   4
 #define CHECKSUM_SIZE_BYTES 1
-TaskHandle_t rs485_tx_task_handle = NULL, usb_connected_task_handle = NULL;
+TaskHandle_t rs485_tx_task_handle, usb_connected_task_handle;
 SemaphoreHandle_t rs485_tx_semaphore_handle;
 EspSoftwareSerial::UART rs485_serial_port;
 bool master_mcu_is_on_bus = false; // Flag set to false, set to true when MCU acks on bus
 bool dsp_processor_is_on_bus = false;
 
-#define TX_TASK_PRIORITY tskIDLE_PRIORITY + 1
+#define TX_TASK_PRIORITY            tskIDLE_PRIORITY + 1
+#define USB_CONNECTED_TASK_PRIORITY tskIDLE_PRIORITY + 1
 
 // DSP settings struct ptr
 struct DSP_Settings* dsp_settings_rs485;
@@ -54,19 +55,24 @@ void Audison_AC_Link_Bus::parse_rx_message(uint8_t* message, uint8_t message_len
                 switch (command) {
                     case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
                         log_i("USB connected. RS485 bus inactive");
+                        change_led_mode(LED_MODE_USB_CONNECTED);
                         this->send_fw_version_to_usb();
                         update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 1);
-                        dsp_settings_rs485->usb_connected = true;
                         disable_encoders();
-                        vTaskResume(usb_connected_task_handle); // Enable the USB connected task
-                        vTaskSuspend(rs485_tx_task_handle);     // Suspend the TX task last to avoid hanging ourselves
-                                                                // without completing
+                        vTaskResume(usb_connected_task_handle);   // Enable the USB connected task
+                        dsp_settings_rs485->usb_connected = true; // We set this flag last to avoid being unable to
+                                                                  // write to bus
+                        vTaskSuspend(rs485_tx_task_handle);       // Suspend the TX task last to avoid hanging ourselves
+                                                                  // without completing
                         break;
                     case AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED:
                         log_i("USB disconnected. RS485 bus active");
+                        change_led_mode(LED_MODE_DEVICE_RUNNING);
                         dsp_settings_rs485->usb_connected = false;
                         enable_encoders();
-                        this->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_COMPUTER);
+                        this->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_MASTER_MCU);
+                        vTaskDelay(pdMS_TO_TICKS(500));
+                        this->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_DSP_PROCESSOR);
                         update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 0);
                         vTaskResume(rs485_tx_task_handle);       // Enable the TX task that pings devices on bus
                         vTaskSuspend(usb_connected_task_handle); // Disable the USB connected task last to avoid hanging
@@ -149,10 +155,13 @@ void usb_connected_task(void* pvParameters) {
     while (1) {
         uint8_t received_message[50];
         uint8_t bytes_to_read = ac_link_bus_ptr->read_rx_message(received_message, sizeof(received_message));
-        if (bytes_to_read > 5) {
+        while (bytes_to_read > 5) {
             ac_link_bus_ptr->parse_rx_message(received_message, bytes_to_read);
+            memset(received_message, 0x00, sizeof(bytes_to_read));
+            bytes_to_read = ac_link_bus_ptr->read_rx_message(received_message, sizeof(received_message));
+            vTaskDelay(pdMS_TO_TICKS(10)); // Let other stuff happen
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(500)); // We can idle for a while since this is not too important
     }
 }
 
@@ -241,7 +250,7 @@ void Audison_AC_Link_Bus::check_dsp_processor_on_bus(void) {
 
 void Audison_AC_Link_Bus::send_fw_version_to_usb(void) {
     uint8_t packet[] = {AC_LINK_COMMAND_DRC_FW_VERSION, DRC_FIRMWARE_VERSION[0], DRC_FIRMWARE_VERSION[1]};
-    this->write_to_audison_bus(AC_LINK_ADDRESS_COMPUTER, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+    this->write_to_audison_bus(AC_LINK_ADDRESS_COMPUTER, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), false);
 }
 
 void Audison_AC_Link_Bus::set_dsp_memory(uint8_t memory) {
@@ -249,7 +258,7 @@ void Audison_AC_Link_Bus::set_dsp_memory(uint8_t memory) {
     // offset here
     uint8_t memory_corrected = memory + 1;
     uint8_t packet[] = {AC_LINK_COMMAND_CHANGE_DSP_MEMORY, memory_corrected};
-    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet));
+    this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), false);
 }
 
 void Audison_AC_Link_Bus::get_current_input_source(void) {
@@ -342,19 +351,20 @@ void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t
             }
             Serial.println();
         }
-
         if (wait_for_response) {
             vTaskDelay(pdMS_TO_TICKS(250));
-            uint8_t received_message[250];
+            uint8_t received_message[50];
             uint8_t bytes_to_read = this->read_rx_message(received_message, sizeof(received_message));
+            xSemaphoreGive(rs485_tx_semaphore_handle); // Need to give the semaphore before parsing. Otherwise we
+                                                       // won't be able to start another transaction
             if (bytes_to_read > 5) {
                 this->parse_rx_message(received_message, bytes_to_read);
             }
+        } else {
+            xSemaphoreGive(rs485_tx_semaphore_handle);
         }
-        xSemaphoreGive(rs485_tx_semaphore_handle);
-    }
 
-    else {
+    } else {
         log_e("Can't use the RS485 bus when USB is connected to the DSP!");
     }
 }
@@ -418,7 +428,7 @@ void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings* settings) {
     rs485_serial_port.begin(RS485_BAUDRATE, SWSERIAL_8S1, this->rx_pin, -1); // Use software serial for RX
     rs485_serial_port.flush();
     xTaskCreatePinnedToCore(rs485_tx_task, "RS485_tx", 8 * 1024, this, TX_TASK_PRIORITY, &rs485_tx_task_handle, 1);
-    xTaskCreatePinnedToCore(usb_connected_task, "USBConnRXTask", 8 * 1024, this, tskIDLE_PRIORITY + 1,
+    xTaskCreatePinnedToCore(usb_connected_task, "USBConnRXTask", 8 * 1024, this, USB_CONNECTED_TASK_PRIORITY,
                             &usb_connected_task_handle, 1);
     vTaskSuspend(usb_connected_task_handle);
 }
