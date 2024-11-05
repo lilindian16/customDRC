@@ -20,14 +20,14 @@ static const char* TAG = "rmt-uart";
 
 #define RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA 6
 
+#define RING_BUFFER_LENGTH_BYTES (sizeof(uint16_t)) * 1024 * 4 // 4kB of uint8_t data because of packet handling
+
 // Macros for the AC Link Bus data packets
 #define HEADER_SIZE_BYTES   4
 #define CHECKSUM_SIZE_BYTES 1
-TaskHandle_t rs485_tx_task_handle, usb_connected_task_handle;
-SemaphoreHandle_t rs485_tx_semaphore_handle;
+TaskHandle_t rs485_bus_device_polling_task_handle, usb_connected_task_handle, rs485_bus_task_handle;
 EspSoftwareSerial::UART rs485_serial_port;
 bool master_mcu_is_on_bus = false; // Flag set to false, set to true when MCU acks on bus
-bool dsp_processor_is_on_bus = false;
 
 #define TX_TASK_PRIORITY            tskIDLE_PRIORITY + 1
 #define USB_CONNECTED_TASK_PRIORITY tskIDLE_PRIORITY + 1
@@ -62,8 +62,8 @@ void Audison_AC_Link_Bus::parse_rx_message(uint8_t* message, uint8_t message_len
                         vTaskResume(usb_connected_task_handle);   // Enable the USB connected task
                         dsp_settings_rs485->usb_connected = true; // We set this flag last to avoid being unable to
                                                                   // write to bus
-                        vTaskSuspend(rs485_tx_task_handle);       // Suspend the TX task last to avoid hanging ourselves
-                                                                  // without completing
+                        vTaskSuspend(rs485_bus_device_polling_task_handle); // Suspend the TX task last to avoid hanging
+                                                                            // ourselves without completing
                         break;
                     case AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED:
                         log_i("USB disconnected. RS485 bus active");
@@ -74,7 +74,8 @@ void Audison_AC_Link_Bus::parse_rx_message(uint8_t* message, uint8_t message_len
                         vTaskDelay(pdMS_TO_TICKS(500));
                         this->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_DSP_PROCESSOR);
                         update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, 0);
-                        vTaskResume(rs485_tx_task_handle);       // Enable the TX task that pings devices on bus
+                        vTaskResume(rs485_bus_device_polling_task_handle); // Enable the TX task that pings devices on
+                                                                           // bus
                         vTaskSuspend(usb_connected_task_handle); // Disable the USB connected task last to avoid hanging
                                                                  // ourselves without completing
                         break;
@@ -99,8 +100,8 @@ void Audison_AC_Link_Bus::parse_rx_message(uint8_t* message, uint8_t message_len
             } else if (transmitter == AC_LINK_ADDRESS_DSP_PROCESSOR) {
                 switch (command) {
                     case AC_LINK_COMMAND_DEVICE_IS_PRESENT:
-                        dsp_processor_is_on_bus = true; // Flag to allow us to continue the boot process
                         this->dsp_on_bus = true;
+                        this->dsp_ping_count = 0;
                         break;
                     case AC_LINK_COMMAND_INPUT_SOURCE_NAME:
                         if (message_length == 0x16) {
@@ -165,14 +166,14 @@ void usb_connected_task(void* pvParameters) {
     }
 }
 
-void rs485_tx_task(void* pvParameters) {
+void rs485_bus_device_polling_task(void* pvParameters) {
     bool boot_up_completed = false;
     Audison_AC_Link_Bus* ac_link_bus_ptr = (Audison_AC_Link_Bus*)pvParameters;
     while (1) {
         if (!boot_up_completed) {
-            while (!dsp_processor_is_on_bus) {
+            while (!ac_link_bus_ptr->is_dsp_on_bus()) {
                 ac_link_bus_ptr->check_dsp_processor_on_bus();
-                vTaskDelay(pdMS_TO_TICKS(500));
+                vTaskDelay(pdMS_TO_TICKS(1000));
             }
             ac_link_bus_ptr->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_MASTER_MCU);
             vTaskDelay(pdMS_TO_TICKS(500));
@@ -234,18 +235,17 @@ void Audison_AC_Link_Bus::check_master_mcu_on_bus(void) {
 }
 
 void Audison_AC_Link_Bus::check_dsp_processor_on_bus(void) {
-    this->dsp_on_bus = false; // Reset the flag
+    this->dsp_ping_count++;
     uint8_t packet[] = {AC_LINK_COMMAND_CHECK_DEVICE_PRESENT};
     this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), true);
-    if (this->dsp_on_bus == false) {
-        device_comms_fail_count++;
-        if (device_comms_fail_count >= 5) {
-            log_i("Failed to communicate with DSP. Shutting down");
-            shut_down_dsp();
-        }
-    } else {
-        this->device_comms_fail_count = 0; // Reset the count
+    if (this->dsp_ping_count >= 5) {
+        log_e("Tried to ping the DSP too many times. Shutting down now");
+        shut_down_dsp();
     }
+}
+
+bool Audison_AC_Link_Bus::is_dsp_on_bus(void) {
+    return this->dsp_on_bus;
 }
 
 void Audison_AC_Link_Bus::send_fw_version_to_usb(void) {
@@ -271,7 +271,7 @@ void Audison_AC_Link_Bus::change_source(void) {
     // Unit responds with the source that it has changed to -> we need to wait for response
     uint8_t packet[] = {AC_LINK_COMMAND_CHANGE_SOURCE, 0x00};
     this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), true);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(500));
     this->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_DSP_PROCESSOR);
     vTaskDelay(pdMS_TO_TICKS(100));
     this->update_device_with_latest_settngs(dsp_settings_rs485, AC_LINK_ADDRESS_MASTER_MCU);
@@ -280,11 +280,8 @@ void Audison_AC_Link_Bus::change_source(void) {
 void Audison_AC_Link_Bus::update_device_with_latest_settngs(struct DSP_Settings* settings,
                                                             uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/) {
     this->set_volume(settings->master_volume, receiver_address);
-    vTaskDelay(pdMS_TO_TICKS(100));
     this->set_sub_volume(settings->sub_volume, receiver_address);
-    vTaskDelay(pdMS_TO_TICKS(100));
     this->set_balance(settings->balance, receiver_address);
-    vTaskDelay(pdMS_TO_TICKS(100));
     this->set_fader(settings->fader, receiver_address);
 }
 
@@ -300,6 +297,22 @@ uint8_t Audison_AC_Link_Bus::calculate_checksum(uint8_t* data_buffer, uint8_t da
     }
     uint8_t checksum = byte_sum % 256;
     return checksum;
+}
+
+void Audison_AC_Link_Bus::enable_transmission(void) {
+    digitalWrite(this->tx_en_pin, HIGH);
+}
+
+void Audison_AC_Link_Bus::disable_transmission(void) {
+    digitalWrite(this->tx_en_pin, LOW);
+}
+
+bool Audison_AC_Link_Bus::lock_ring_buffer(void) {
+    return xSemaphoreTake(this->ring_buffer_semaphore, (TickType_t)10);
+}
+
+void Audison_AC_Link_Bus::release_ring_buffer(void) {
+    xSemaphoreGive(this->ring_buffer_semaphore);
 }
 
 void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t* data,
@@ -319,53 +332,131 @@ void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t
                                                     sizeof(message_buffer) - 1); // Last byte is the checksum
         message_buffer[message_length - 1] = checksum;
 
-        rmt_item32_t packet_rmt_items[RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA * message_length];
-        this->convert_packet_to_rmt_items(message_buffer, message_length, packet_rmt_items);
-
-        while (xSemaphoreTake(rs485_tx_semaphore_handle, TickType_t(10)) != pdTRUE) {
-            vTaskDelay(pdMS_TO_TICKS(10));
-        }
-
-        digitalWrite(this->tx_en_pin, HIGH); // TX output enable
-        ESP_ERROR_CHECK(rmt_write_items(RMT_CHANNEL_0, packet_rmt_items,
-                                        sizeof(packet_rmt_items) / sizeof(packet_rmt_items[0]), true));
-        digitalWrite(this->tx_en_pin, LOW); // TX output disable
-
-        vTaskDelay(pdMS_TO_TICKS(50)); // Let the RX interrupt do its thing
-        // We can read what we just sent first
-        uint8_t transmitted_message[message_length];
-        uint8_t bytes_to_read = this->read_rx_message(transmitted_message, sizeof(transmitted_message));
-        if (bytes_to_read != sizeof(transmitted_message)) {
-            log_e("RS485 ERROR: TX did not send the correct amount of bytes");
-            for (uint8_t i = 0; i < bytes_to_read; i++) {
-                Serial.print(transmitted_message[i], HEX);
-                Serial.print(" ");
-            }
-            Serial.println();
-        } else if (memcmp(message_buffer, transmitted_message, sizeof(message_buffer)) != 0) {
-            log_e("RS485 ERROR: Bytes sent not matching");
-        } else {
-            for (uint8_t i = 0; i < sizeof(transmitted_message); i++) {
-                Serial.print(transmitted_message[i], HEX);
-                Serial.print(" ");
-            }
-            Serial.println();
+        // Add packet to the ring buffer
+        uint16_t ring_buffer_packet[message_length + 1];
+        for (uint8_t i = 0; i < message_length; i++) {
+            ring_buffer_packet[i] = (uint16_t)message_buffer[i];
         }
         if (wait_for_response) {
-            vTaskDelay(pdMS_TO_TICKS(250));
-            uint8_t received_message[50];
-            uint8_t bytes_to_read = this->read_rx_message(received_message, sizeof(received_message));
-            xSemaphoreGive(rs485_tx_semaphore_handle); // Need to give the semaphore before parsing. Otherwise we
-                                                       // won't be able to start another transaction
-            if (bytes_to_read > 5) {
-                this->parse_rx_message(received_message, bytes_to_read);
-            }
+            ring_buffer_packet[message_length] = (uint16_t)PACKET_WAIT_FOR_RESPONSE;
         } else {
-            xSemaphoreGive(rs485_tx_semaphore_handle);
+            ring_buffer_packet[message_length] = (uint16_t)PACKET_NO_RESPONSE;
         }
+
+        while (!this->lock_ring_buffer()) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+
+        UBaseType_t res = pdFALSE;
+        while (res == pdFALSE) {
+            res = xRingbufferSend(this->tx_ring_buffer_handle, ring_buffer_packet, sizeof(ring_buffer_packet),
+                                  (TickType_t)100);
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        this->release_ring_buffer();
 
     } else {
         log_e("Can't use the RS485 bus when USB is connected to the DSP!");
+    }
+}
+
+void rs485_bus_task(void* pvParameters) {
+    Audison_AC_Link_Bus* ac_link_bus_ptr = (Audison_AC_Link_Bus*)pvParameters;
+    while (1) {
+        // Receive the items from the ring buffer
+        size_t item_size;
+        while (!ac_link_bus_ptr->lock_ring_buffer()) {
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+        uint16_t* item =
+            (uint16_t*)xRingbufferReceive(ac_link_bus_ptr->tx_ring_buffer_handle, &item_size, (TickType_t)10);
+
+        if (item != NULL) {
+            item_size /= sizeof(uint16_t); // xRingbufferReceive updates item_size with number of bytes obtained. Each
+            // item is 16-bit
+            uint16_t ring_buffer_packet[item_size];
+            memcpy(ring_buffer_packet, item, sizeof(ring_buffer_packet)); // memcpy uses number of BYTES as param!
+            vRingbufferReturnItem(ac_link_bus_ptr->tx_ring_buffer_handle, (void*)item); // Return Item
+            ac_link_bus_ptr->release_ring_buffer();
+            uint8_t packet_index = 0;
+            // Parse each packet
+            while (packet_index < item_size) { // There may be multiple messages retrieved from the buffer
+                bool wait_for_response = false;
+                uint8_t temp_buf[item_size];
+                uint8_t temp_buf_length = 0;
+                for (size_t i = 0; i < item_size; i++) {
+                    if (ring_buffer_packet[packet_index] == (uint16_t)PACKET_WAIT_FOR_RESPONSE) {
+                        wait_for_response = true;
+                        packet_index++;
+                        break;
+                    } else if (ring_buffer_packet[packet_index] == (uint16_t)PACKET_NO_RESPONSE) {
+                        packet_index++;
+                        break;
+                    } else {
+                        temp_buf[i] = (uint8_t)ring_buffer_packet[packet_index];
+                        temp_buf_length++;
+                        packet_index++;
+                    }
+                }
+
+                if (temp_buf_length > 5) {
+                    rmt_item32_t packet_rmt_items[RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA * temp_buf_length];
+                    ac_link_bus_ptr->convert_packet_to_rmt_items(temp_buf, temp_buf_length, packet_rmt_items);
+
+                    // Now we write it to the bus
+                    ac_link_bus_ptr->enable_transmission(); // TX output enable
+                    ESP_ERROR_CHECK(rmt_write_items(RMT_CHANNEL_0, packet_rmt_items,
+                                                    sizeof(packet_rmt_items) / sizeof(packet_rmt_items[0]), true));
+                    ac_link_bus_ptr->disable_transmission(); // TX output disable
+
+                    // We can read what we just sent first
+                    uint8_t transmitted_message[temp_buf_length];
+                    uint8_t bytes_to_read =
+                        ac_link_bus_ptr->read_rx_message(transmitted_message, sizeof(transmitted_message));
+                    if (bytes_to_read != temp_buf_length) {
+                        log_e("RS485 ERROR: TX did not send the correct amount of bytes, sent %d bytes", bytes_to_read);
+                        for (uint8_t i = 0; i < bytes_to_read; i++) {
+                            Serial.print(transmitted_message[i], HEX);
+                            Serial.print(" ");
+                        }
+                        Serial.println();
+                    } else if (memcmp(temp_buf, transmitted_message, temp_buf_length) != 0) {
+                        log_e("RS485 ERROR: Bytes sent not matching");
+                    } else {
+                        for (uint8_t i = 0; i < sizeof(transmitted_message); i++) {
+                            Serial.print(transmitted_message[i], HEX);
+                            Serial.print(" ");
+                        }
+                        Serial.println();
+                    }
+                    if (wait_for_response) {
+                        bytes_to_read = 0xFF;
+                        while (bytes_to_read) {
+                            vTaskDelay(pdMS_TO_TICKS(250));
+                            uint8_t received_message[50];
+                            bytes_to_read =
+                                ac_link_bus_ptr->read_rx_message(received_message, sizeof(received_message));
+                            if (bytes_to_read > 5) {
+                                ac_link_bus_ptr->parse_rx_message(received_message, bytes_to_read);
+                            }
+                        }
+                    }
+                }
+                vTaskDelay(pdMS_TO_TICKS(10)); // Wait to process another item
+            }
+        } else {
+            ac_link_bus_ptr->release_ring_buffer();
+            uint8_t bytes_to_read = 0xFF;
+            while (bytes_to_read > 0) {
+                vTaskDelay(pdMS_TO_TICKS(200));
+                uint8_t received_message[50];
+                bytes_to_read = ac_link_bus_ptr->read_rx_message(received_message, sizeof(received_message));
+                if (bytes_to_read > 5) {
+                    ac_link_bus_ptr->parse_rx_message(received_message, bytes_to_read);
+                }
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
@@ -391,13 +482,11 @@ uint8_t Audison_AC_Link_Bus::read_rx_message(uint8_t* data_buffer, uint8_t buffe
                 {
                     message_length_found = true;
                     total_message_length = data;
-                } else if (message_length_found && message_index == total_message_length - 1) // Message
-                                                                                              // complete
+                } else if (message_length_found && message_index == (total_message_length - 1)) // Message
+                                                                                                // complete
                 {
-                    if (buffer_length >= total_message_length) {
-                        message_completed = true;
-                        return total_message_length;
-                    }
+                    message_completed = true;
+                    return total_message_length;
                 }
             }
         }
@@ -414,20 +503,24 @@ void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings* settings) {
     this->tx_en_pin = RS485_TX_EN_PIN;
 
     pinMode(this->tx_en_pin, OUTPUT);
+    this->disable_transmission();
 
-    rs485_tx_semaphore_handle = xSemaphoreCreateMutex();
-    if (rs485_tx_semaphore_handle == NULL) {
-        log_e("Failed to create the RS485 tx mutex");
-        while (1) {
-            ;
-        }
+    this->ring_buffer_semaphore = xSemaphoreCreateMutex();
+    xSemaphoreGive(this->ring_buffer_semaphore);
+
+    // Create the TX ring buffer
+    this->tx_ring_buffer_handle = xRingbufferCreate(RING_BUFFER_LENGTH_BYTES, RINGBUF_TYPE_BYTEBUF);
+    if (this->tx_ring_buffer_handle == NULL) {
+        log_e("Failed to create ring buffer!");
     }
 
     this->init_rmt(); // Enable RMT for TX
 
-    rs485_serial_port.begin(RS485_BAUDRATE, SWSERIAL_8S1, this->rx_pin, -1); // Use software serial for RX
-    rs485_serial_port.flush();
-    xTaskCreatePinnedToCore(rs485_tx_task, "RS485_tx", 8 * 1024, this, TX_TASK_PRIORITY, &rs485_tx_task_handle, 1);
+    rs485_serial_port.begin(RS485_BAUDRATE, SWSERIAL_8S1, this->rx_pin, -1); // Use software serial only for RX
+    xTaskCreatePinnedToCore(rs485_bus_task, "RS485BusTask", 8 * 1024, this, tskIDLE_PRIORITY + 1,
+                            &rs485_bus_task_handle, 1);
+    xTaskCreatePinnedToCore(rs485_bus_device_polling_task, "RS485_tx", 8 * 1024, this, TX_TASK_PRIORITY,
+                            &rs485_bus_device_polling_task_handle, 1);
     xTaskCreatePinnedToCore(usb_connected_task, "USBConnRXTask", 8 * 1024, this, USB_CONNECTED_TASK_PRIORITY,
                             &usb_connected_task_handle, 1);
     vTaskSuspend(usb_connected_task_handle);

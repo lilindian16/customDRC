@@ -11,9 +11,17 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "Custom_DRC.hpp"
+
+// FreeRTOS includes
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+
+// ESP32 driver includes
 #include "driver/rmt.h"
+
+// C includes
+#include <stdint.h>
 
 enum AC_Link_Address {
     AC_LINK_ADDRESS_MASTER_MCU = 0x00,
@@ -37,7 +45,12 @@ enum AC_Link_Command {
     AC_LINK_COMMAND_DEVICE_IS_DISCONNECTED = 0x35,
     AC_LINK_COMMAND_GET_CURRENT_SOURCE_NAME = 0x6D,
     AC_LINK_COMMAND_TURN_OFF_MAIN_UNIT = 0x6E, // Unknown yet
+};
 
+enum AC_Link_Packet_Elements {
+    PACKET_WAIT_FOR_RESPONSE = 0xFFFD,
+    PACKET_NO_RESPONSE = 0xFFFE,
+    PACKET_ELEMENT_ERROR = 0xFFFF,
 };
 
 constexpr uint8_t MIN_VOLUME_VALUE = 0x00;
@@ -131,8 +144,19 @@ class Audison_AC_Link_Bus {
     uint8_t read_rx_message(uint8_t* data_buffer, uint8_t buffer_length);
 
     void parse_rx_message(uint8_t* message, uint8_t message_len);
+    void convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length, rmt_item32_t* item_buffer);
 
-  public:  // Public Variables
+    void enable_transmission(void);
+    void disable_transmission(void);
+
+    bool is_dsp_on_bus(void);
+
+    bool lock_ring_buffer(void);
+    void release_ring_buffer(void);
+
+  public:                                  // Public Variables
+    RingbufHandle_t tx_ring_buffer_handle; // Public for now. Will need to make it private
+
   private: // Private functions
     /**
      * @param receiver_address Used for transmission. Parity bit will be marked
@@ -156,7 +180,8 @@ class Audison_AC_Link_Bus {
 
     void convert_byte_to_rmt_item_9bit(uint8_t byte_to_convert, bool is_address, rmt_item32_t* item_buffer);
 
-    void convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length, rmt_item32_t* item_buffer);
+    size_t read_from_ring_buffer(void);
+    bool write_to_ring_buffer(uint8_t* data, uint8_t data_length, bool wait_for_response = false);
 
   private: // Private Variables
     int tx_pin;
@@ -164,7 +189,9 @@ class Audison_AC_Link_Bus {
     int tx_en_pin;
 
     bool dsp_on_bus = false;
-    uint8_t device_comms_fail_count = 0;
+    uint8_t dsp_ping_count = 0;
+
+    SemaphoreHandle_t ring_buffer_semaphore;
 };
 
 extern Audison_AC_Link_Bus Audison_AC_Link;
