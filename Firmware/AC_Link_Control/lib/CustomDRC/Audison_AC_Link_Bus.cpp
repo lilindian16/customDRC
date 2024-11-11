@@ -18,21 +18,35 @@
 #include "esp_log.h"
 static const char* TAG = "rmt-uart";
 
+/**
+ * RMT payload uses "items". Each item can portray 2 bits on serial. We require a
+ * START bit, 9 bits of data and STOP bit. We require 11 bits but use 12
+ * (1 extra idle bit) which means we require 6 items to send 1 byte on the bus
+ */
 #define RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA 6
 
-#define RING_BUFFER_LENGTH_BYTES (sizeof(uint16_t)) * 1024 * 4 // 4kB of uint8_t data because of packet handling
+/**
+ * Our ring buffer uses 16-bit data to pack more packet info
+ * We want the ring buffer to hold ~4kB of packet data so we allocate 4kB
+ * of memory sized at 16-bits
+ */
+#define RING_BUFFER_LENGTH_BYTES (sizeof(uint16_t)) * 1024 * 4
 
-// Macros for the AC Link Bus data packets
+/* Macros for the AC Link Bus data packets */
 #define HEADER_SIZE_BYTES   4
 #define CHECKSUM_SIZE_BYTES 1
-TaskHandle_t rs485_bus_device_polling_task_handle, usb_connected_task_handle, rs485_bus_task_handle;
-EspSoftwareSerial::UART rs485_serial_port;
-bool master_mcu_is_on_bus = false; // Flag set to false, set to true when MCU acks on bus
 
 #define TX_TASK_PRIORITY            tskIDLE_PRIORITY + 1
 #define USB_CONNECTED_TASK_PRIORITY tskIDLE_PRIORITY + 1
 
-// DSP settings struct ptr
+/* Software Serial object handle */
+EspSoftwareSerial::UART rs485_serial_port;
+
+TaskHandle_t rs485_bus_device_polling_task_handle, usb_connected_task_handle, rs485_bus_task_handle;
+
+bool master_mcu_is_on_bus = false; // Flag set to false, set to true when MCU acks on bus
+
+/* DSP settings struct ptr */
 struct DSP_Settings* dsp_settings_rs485;
 
 void Audison_AC_Link_Bus::parse_rx_message(uint8_t* message, uint8_t message_len) {
@@ -254,8 +268,7 @@ void Audison_AC_Link_Bus::send_fw_version_to_usb(void) {
 }
 
 void Audison_AC_Link_Bus::set_dsp_memory(uint8_t memory) {
-    // We index the DSP memory at 0 but Audison have it indexed at 1. Apply the
-    // offset here
+    /* We index the DSP memory at 0 but Audison have it indexed at 1. Apply the offset here */
     uint8_t memory_corrected = memory + 1;
     uint8_t packet[] = {AC_LINK_COMMAND_CHANGE_DSP_MEMORY, memory_corrected};
     this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), false);
@@ -267,8 +280,9 @@ void Audison_AC_Link_Bus::get_current_input_source(void) {
 }
 
 void Audison_AC_Link_Bus::change_source(void) {
-    // Request the unit to change the source
-    // Unit responds with the source that it has changed to -> we need to wait for response
+    /**Request the unit to change the source. Unit responds with the source that it has
+     * changed to -> we need to wait for response
+     * */
     uint8_t packet[] = {AC_LINK_COMMAND_CHANGE_SOURCE, 0x00};
     this->write_to_audison_bus(AC_LINK_ADDRESS_DSP_PROCESSOR, AC_LINK_ADDRESS_DRC, packet, sizeof(packet), true);
     vTaskDelay(pdMS_TO_TICKS(500));
@@ -372,7 +386,8 @@ void rs485_bus_task(void* pvParameters) {
             (uint16_t*)xRingbufferReceive(ac_link_bus_ptr->tx_ring_buffer_handle, &item_size, (TickType_t)10);
 
         if (item != NULL) {
-            item_size /= sizeof(uint16_t); // xRingbufferReceive updates item_size with number of bytes obtained. Each
+            item_size /= sizeof(uint16_t); // xRingbufferReceive updates item_size with number of bytes obtained.
+                                           // Each
             // item is 16-bit
             uint16_t ring_buffer_packet[item_size];
             memcpy(ring_buffer_packet, item, sizeof(ring_buffer_packet)); // memcpy uses number of BYTES as param!
@@ -547,14 +562,13 @@ void Audison_AC_Link_Bus::convert_byte_to_rmt_item_9bit(uint8_t byte_to_convert,
 
 void Audison_AC_Link_Bus::convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length,
                                                       rmt_item32_t* item_buffer) {
-    for (uint8_t packet_byte = 0; packet_byte < packet_length; packet_byte++) {
-        if (packet_byte == 0) {
-            convert_byte_to_rmt_item_9bit(packet[packet_byte], true, item_buffer);
-        } else {
-            convert_byte_to_rmt_item_9bit(packet[packet_byte], false, item_buffer);
-        }
-        item_buffer += RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA; // Offset item pointer by size of packet and index
+    uint8_t packet_byte = 0;
+    convert_byte_to_rmt_item_9bit(packet[packet_byte], true, item_buffer); // Convert the address first
+    for (packet_byte = 1; packet_byte < packet_length; packet_byte++) {
+
+        convert_byte_to_rmt_item_9bit(packet[packet_byte], false, item_buffer);
     }
+    item_buffer += RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA; // Offset item pointer by size of packet and index
 }
 
 int Audison_AC_Link_Bus::init_rmt(void) {
