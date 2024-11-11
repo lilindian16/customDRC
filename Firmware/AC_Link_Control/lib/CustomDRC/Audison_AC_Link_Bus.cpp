@@ -543,32 +543,30 @@ void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings* settings) {
 
 void Audison_AC_Link_Bus::convert_byte_to_rmt_item_9bit(uint8_t byte_to_convert, bool is_address,
                                                         rmt_item32_t* item_buffer) {
-    // NOTE: UART protocol requires LSB format
-    uint8_t item_index = 0;
-    uint16_t data = (byte_to_convert << 1); // Add the start bit
-    if (is_address) {                       // Add the address flag
-        data |= (1 << 9);
-    }
-    data |= (0b11 << 10); // Add the stop bit and extra idle bit
+    /** NOTE: UART protocol requires LSB format. We start by adding the extra idle
+     * bit and STOP bit to the data packet. We add the address flag (9th bit), the 8 bits
+     * of data and then the STOP bit (LOW for UART). The STOP bit is achieved by left shifting
+     * everything - you are left with 0 as the STOP bit
+     */
+    uint16_t data = (0b11 << 10) | (is_address << 9) | (byte_to_convert << 1);
 
-    for (uint8_t i = 0; i < 11; i += 2) {
+    for (uint8_t item_index = 0; item_index < 11; item_index += 2) {
         item_buffer[item_index].duration0 = 50;
-        item_buffer[item_index].level0 = (data >> i) & 0b1;
+        item_buffer[item_index].level0 = (data >> item_index) & 1;
         item_buffer[item_index].duration1 = 50;
-        item_buffer[item_index].level1 = (data >> (i + 1)) & 0b1;
-        item_index++;
+        item_buffer[item_index].level1 = (data >> (item_index + 1)) & 1;
     }
 }
 
 void Audison_AC_Link_Bus::convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length,
-                                                      rmt_item32_t* item_buffer) {
+                                                      rmt_item32_t* item_buffer_ptr) {
     uint8_t packet_byte = 0;
-    convert_byte_to_rmt_item_9bit(packet[packet_byte], true, item_buffer); // Convert the address first
+    convert_byte_to_rmt_item_9bit(packet[packet_byte], true, item_buffer_ptr); // Convert the address first
+    item_buffer_ptr += RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA; // Offset item pointer by size of packet and index
     for (packet_byte = 1; packet_byte < packet_length; packet_byte++) {
-
-        convert_byte_to_rmt_item_9bit(packet[packet_byte], false, item_buffer);
+        convert_byte_to_rmt_item_9bit(packet[packet_byte], false, item_buffer_ptr);
+        item_buffer_ptr += RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA; // Offset item pointer by size of packet and index
     }
-    item_buffer += RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA; // Offset item pointer by size of packet and index
 }
 
 int Audison_AC_Link_Bus::init_rmt(void) {
