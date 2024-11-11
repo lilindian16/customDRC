@@ -25,13 +25,6 @@ static const char* TAG = "rmt-uart";
  */
 #define RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA 6
 
-/**
- * Our ring buffer uses 16-bit data to pack more packet info
- * We want the ring buffer to hold ~4kB of packet data so we allocate 4kB
- * of memory sized at 16-bits
- */
-#define RING_BUFFER_LENGTH_BYTES (sizeof(uint16_t)) * 1024 * 4
-
 /* Macros for the AC Link Bus data packets */
 #define HEADER_SIZE_BYTES   4
 #define CHECKSUM_SIZE_BYTES 1
@@ -40,7 +33,7 @@ static const char* TAG = "rmt-uart";
 EspSoftwareSerial::UART rs485_serial_port;
 
 /* FreeRTOS task handles */
-TaskHandle_t rs485_bus_device_polling_task_handle, usb_connected_task_handle, rs485_bus_task_handle;
+TaskHandle_t rs485_bus_device_polling_task_handle, usb_connected_task_handle;
 
 /* Task prioritites */
 #define TX_TASK_PRIORITY            tskIDLE_PRIORITY + 1
@@ -296,8 +289,11 @@ void Audison_AC_Link_Bus::change_source(void) {
 void Audison_AC_Link_Bus::update_device_with_latest_settngs(struct DSP_Settings* settings,
                                                             uint8_t receiver_address /*AC_LINK_ADDRESS_DSP_MASTER*/) {
     this->set_volume(settings->master_volume, receiver_address);
+    vTaskDelay(pdMS_TO_TICKS(50));
     this->set_sub_volume(settings->sub_volume, receiver_address);
+    vTaskDelay(pdMS_TO_TICKS(50));
     this->set_balance(settings->balance, receiver_address);
+    vTaskDelay(pdMS_TO_TICKS(50));
     this->set_fader(settings->fader, receiver_address);
 }
 
@@ -323,12 +319,16 @@ void Audison_AC_Link_Bus::disable_transmission(void) {
     digitalWrite(this->tx_en_pin, LOW);
 }
 
-bool Audison_AC_Link_Bus::lock_ring_buffer(void) {
-    return xSemaphoreTake(this->ring_buffer_semaphore, (TickType_t)10);
-}
-
-void Audison_AC_Link_Bus::release_ring_buffer(void) {
-    xSemaphoreGive(this->ring_buffer_semaphore);
+void Audison_AC_Link_Bus::purge_bus_rx_buffer(void) {
+    uint8_t bytes_to_read = 0xFF;
+    while (bytes_to_read) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        uint8_t received_message[50];
+        bytes_to_read = this->read_rx_message(received_message, sizeof(received_message));
+        if (bytes_to_read > 5) {
+            this->parse_rx_message(received_message, bytes_to_read);
+        }
+    }
 }
 
 void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t transmitter_address, uint8_t* data,
@@ -348,132 +348,50 @@ void Audison_AC_Link_Bus::write_to_audison_bus(uint8_t receiver_address, uint8_t
                                                     sizeof(message_buffer) - 1); // Last byte is the checksum
         message_buffer[message_length - 1] = checksum;
 
-        // Add packet to the ring buffer
-        uint16_t ring_buffer_packet[message_length + 1];
-        for (uint8_t i = 0; i < message_length; i++) {
-            ring_buffer_packet[i] = (uint16_t)message_buffer[i];
+        rmt_item32_t packet_rmt_items[RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA * message_length];
+        this->convert_packet_to_rmt_items(message_buffer, message_length, packet_rmt_items);
+
+        while (xSemaphoreTake(this->rs485_bus_mutex, (TickType_t)10) != pdTRUE) {
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
+
+        // Now we write it to the bus
+        this->enable_transmission(); // TX output enable
+        rmt_write_items(RMT_CHANNEL_0, packet_rmt_items, sizeof(packet_rmt_items) / sizeof(packet_rmt_items[0]), true);
+        this->disable_transmission(); // TX output disable
+
+        // We can read what we just sent first
+        uint8_t transmitted_message[message_length];
+        uint8_t bytes_to_read = this->read_rx_message(transmitted_message, sizeof(transmitted_message));
+        if (bytes_to_read != message_length) {
+            log_e("RS485 ERROR: TX did not send the correct amount of bytes, sent %d bytes but expected to "
+                  "send %d bytes",
+                  bytes_to_read, message_length);
+            for (uint8_t i = 0; i < bytes_to_read; i++) {
+                Serial.print(transmitted_message[i], HEX);
+                Serial.print(" ");
+            }
+            Serial.println();
+
+            this->purge_bus_rx_buffer();
+
+        } else if (memcmp(message_buffer, transmitted_message, message_length) != 0) {
+            log_e("RS485 ERROR: Bytes sent not matching");
+            bytes_to_read = 0xFF;
+            this->purge_bus_rx_buffer();
+        } else {
+            for (uint8_t i = 0; i < sizeof(transmitted_message); i++) {
+                Serial.print(transmitted_message[i], HEX);
+                Serial.print(" ");
+            }
+            Serial.println();
         }
         if (wait_for_response) {
-            ring_buffer_packet[message_length] = (uint16_t)PACKET_WAIT_FOR_RESPONSE;
-        } else {
-            ring_buffer_packet[message_length] = (uint16_t)PACKET_NO_RESPONSE;
+            this->purge_bus_rx_buffer();
         }
-
-        while (!this->lock_ring_buffer()) {
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-
-        UBaseType_t res = pdFALSE;
-        while (res == pdFALSE) {
-            res = xRingbufferSend(this->tx_ring_buffer_handle, ring_buffer_packet, sizeof(ring_buffer_packet),
-                                  (TickType_t)100);
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-        this->release_ring_buffer();
-
+        xSemaphoreGive(this->rs485_bus_mutex);
     } else {
         log_e("Can't use the RS485 bus when USB is connected to the DSP!");
-    }
-}
-
-void rs485_bus_task(void* pvParameters) {
-    Audison_AC_Link_Bus* ac_link_bus_ptr = (Audison_AC_Link_Bus*)pvParameters;
-    while (1) {
-        // Receive the items from the ring buffer
-        size_t item_size;
-        while (!ac_link_bus_ptr->lock_ring_buffer()) {
-            vTaskDelay(pdMS_TO_TICKS(100));
-        }
-        uint16_t* item =
-            (uint16_t*)xRingbufferReceive(ac_link_bus_ptr->tx_ring_buffer_handle, &item_size, (TickType_t)10);
-
-        if (item != NULL) {
-            item_size /= sizeof(uint16_t); /* xRingbufferReceive updates item_size with number of bytes obtained. Each
-                                              item is 16-bit */
-            uint16_t ring_buffer_packet[item_size];
-            memcpy(ring_buffer_packet, item, sizeof(ring_buffer_packet)); // memcpy uses number of BYTES as param!
-            vRingbufferReturnItem(ac_link_bus_ptr->tx_ring_buffer_handle, (void*)item); // Return Item
-            ac_link_bus_ptr->release_ring_buffer();
-            uint8_t packet_index = 0;
-            // Parse each packet
-            while (packet_index < item_size) { // There may be multiple messages retrieved from the buffer
-                bool wait_for_response = false;
-                uint8_t temp_buf[item_size];
-                uint8_t temp_buf_length = 0;
-                for (size_t i = 0; i < item_size; i++) {
-                    if (ring_buffer_packet[packet_index] == (uint16_t)PACKET_WAIT_FOR_RESPONSE) {
-                        wait_for_response = true;
-                        packet_index++;
-                        break;
-                    } else if (ring_buffer_packet[packet_index] == (uint16_t)PACKET_NO_RESPONSE) {
-                        packet_index++;
-                        break;
-                    } else {
-                        temp_buf[i] = (uint8_t)ring_buffer_packet[packet_index];
-                        temp_buf_length++;
-                        packet_index++;
-                    }
-                }
-
-                if (temp_buf_length > 5) {
-                    rmt_item32_t packet_rmt_items[RMT_ITEMS_REQUIRED_FOR_9_BIT_DATA * temp_buf_length];
-                    ac_link_bus_ptr->convert_packet_to_rmt_items(temp_buf, temp_buf_length, packet_rmt_items);
-
-                    // Now we write it to the bus
-                    ac_link_bus_ptr->enable_transmission(); // TX output enable
-                    ESP_ERROR_CHECK(rmt_write_items(RMT_CHANNEL_0, packet_rmt_items,
-                                                    sizeof(packet_rmt_items) / sizeof(packet_rmt_items[0]), true));
-                    ac_link_bus_ptr->disable_transmission(); // TX output disable
-
-                    // We can read what we just sent first
-                    uint8_t transmitted_message[temp_buf_length];
-                    uint8_t bytes_to_read =
-                        ac_link_bus_ptr->read_rx_message(transmitted_message, sizeof(transmitted_message));
-                    if (bytes_to_read != temp_buf_length) {
-                        log_e("RS485 ERROR: TX did not send the correct amount of bytes, sent %d bytes but expected to "
-                              "send %d bytes",
-                              bytes_to_read, temp_buf_length);
-                        for (uint8_t i = 0; i < bytes_to_read; i++) {
-                            Serial.print(transmitted_message[i], HEX);
-                            Serial.print(" ");
-                        }
-                        Serial.println();
-                    } else if (memcmp(temp_buf, transmitted_message, temp_buf_length) != 0) {
-                        log_e("RS485 ERROR: Bytes sent not matching");
-                    } else {
-                        for (uint8_t i = 0; i < sizeof(transmitted_message); i++) {
-                            Serial.print(transmitted_message[i], HEX);
-                            Serial.print(" ");
-                        }
-                        Serial.println();
-                    }
-                    if (wait_for_response) {
-                        bytes_to_read = 0xFF;
-                        while (bytes_to_read) {
-                            vTaskDelay(pdMS_TO_TICKS(250));
-                            uint8_t received_message[50];
-                            bytes_to_read =
-                                ac_link_bus_ptr->read_rx_message(received_message, sizeof(received_message));
-                            if (bytes_to_read > 5) {
-                                ac_link_bus_ptr->parse_rx_message(received_message, bytes_to_read);
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            ac_link_bus_ptr->release_ring_buffer();
-            uint8_t bytes_to_read = 0xFF;
-            while (bytes_to_read > 0) {
-                vTaskDelay(pdMS_TO_TICKS(200));
-                uint8_t received_message[50];
-                bytes_to_read = ac_link_bus_ptr->read_rx_message(received_message, sizeof(received_message));
-                if (bytes_to_read > 5) {
-                    ac_link_bus_ptr->parse_rx_message(received_message, bytes_to_read);
-                }
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -522,20 +440,12 @@ void Audison_AC_Link_Bus::init_ac_link_bus(struct DSP_Settings* settings) {
     pinMode(this->tx_en_pin, OUTPUT);
     this->disable_transmission();
 
-    this->ring_buffer_semaphore = xSemaphoreCreateMutex();
-    xSemaphoreGive(this->ring_buffer_semaphore);
-
-    // Create the TX ring buffer
-    this->tx_ring_buffer_handle = xRingbufferCreate(RING_BUFFER_LENGTH_BYTES, RINGBUF_TYPE_BYTEBUF);
-    if (this->tx_ring_buffer_handle == NULL) {
-        log_e("Failed to create ring buffer!");
-    }
+    this->rs485_bus_mutex = xSemaphoreCreateMutex();
+    xSemaphoreGive(this->rs485_bus_mutex);
 
     this->init_rmt(); // Enable RMT for TX
 
     rs485_serial_port.begin(RS485_BAUDRATE, SWSERIAL_8S1, this->rx_pin, -1); // Use software serial only for RX
-    xTaskCreatePinnedToCore(rs485_bus_task, "RS485BusTask", 8 * 1024, this, tskIDLE_PRIORITY + 1,
-                            &rs485_bus_task_handle, 1);
     xTaskCreatePinnedToCore(rs485_bus_device_polling_task, "RS485_tx", 8 * 1024, this, TX_TASK_PRIORITY,
                             &rs485_bus_device_polling_task_handle, 1);
     xTaskCreatePinnedToCore(usb_connected_task, "USBConnRXTask", 8 * 1024, this, USB_CONNECTED_TASK_PRIORITY,

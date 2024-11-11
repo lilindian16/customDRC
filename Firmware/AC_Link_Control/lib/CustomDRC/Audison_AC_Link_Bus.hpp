@@ -145,18 +145,7 @@ class Audison_AC_Link_Bus {
 
     void parse_rx_message(uint8_t* message, uint8_t message_len);
 
-    void convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length, rmt_item32_t* item_buffer);
-
-    void enable_transmission(void);
-    void disable_transmission(void);
-
     bool is_dsp_on_bus(void);
-
-    bool lock_ring_buffer(void);
-    void release_ring_buffer(void);
-
-  public:                                  // Public Variables
-    RingbufHandle_t tx_ring_buffer_handle; // Public for now. Will need to make it private
 
   private: // Private functions
     /**
@@ -170,6 +159,16 @@ class Audison_AC_Link_Bus {
                               bool wait_for_response = false);
 
     /**
+     * Enables transceiver transmit mode
+     */
+    void enable_transmission(void);
+
+    /**
+     * Disables transceiver transmit mode
+     */
+    void disable_transmission(void);
+
+    /**
      * @param data_buffer   Buffer of data to be checksummed
      * @param data_length_bytes
      *
@@ -177,14 +176,23 @@ class Audison_AC_Link_Bus {
      */
     uint8_t calculate_checksum(uint8_t* data_buffer, uint8_t data_length_bytes);
 
+    /**
+     * Initialise the RMT peripheral
+     */
     int init_rmt(void);
 
+    /**
+     * Convert a byte to an RMT item
+     */
     void convert_byte_to_rmt_item_9bit(uint8_t byte_to_convert, bool is_address, rmt_item32_t* item_buffer);
 
-    size_t read_from_ring_buffer(void);
-    bool write_to_ring_buffer(uint8_t* data, uint8_t data_length, bool wait_for_response = false);
+    /**
+     * Helper function to convert an entire packet of 9-bit data into RMT items
+     */
+    void convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length, rmt_item32_t* item_buffer);
 
-  private: // Private Variables
+    void purge_bus_rx_buffer(void);
+
     int tx_pin;
     int rx_pin;
     int tx_en_pin;
@@ -192,7 +200,7 @@ class Audison_AC_Link_Bus {
     bool dsp_on_bus = false;
     uint8_t dsp_ping_count = 0;
 
-    SemaphoreHandle_t ring_buffer_semaphore;
+    SemaphoreHandle_t rs485_bus_mutex;
 };
 
 extern Audison_AC_Link_Bus Audison_AC_Link;
