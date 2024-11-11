@@ -144,6 +144,7 @@ class Audison_AC_Link_Bus {
     uint8_t read_rx_message(uint8_t* data_buffer, uint8_t buffer_length);
 
     void parse_rx_message(uint8_t* message, uint8_t message_len);
+
     void convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length, rmt_item32_t* item_buffer);
 
     void enable_transmission(void);

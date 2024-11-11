@@ -36,15 +36,17 @@ static const char* TAG = "rmt-uart";
 #define HEADER_SIZE_BYTES   4
 #define CHECKSUM_SIZE_BYTES 1
 
-#define TX_TASK_PRIORITY            tskIDLE_PRIORITY + 1
-#define USB_CONNECTED_TASK_PRIORITY tskIDLE_PRIORITY + 1
-
 /* Software Serial object handle */
 EspSoftwareSerial::UART rs485_serial_port;
 
+/* FreeRTOS task handles */
 TaskHandle_t rs485_bus_device_polling_task_handle, usb_connected_task_handle, rs485_bus_task_handle;
 
-bool master_mcu_is_on_bus = false; // Flag set to false, set to true when MCU acks on bus
+/* Task prioritites */
+#define TX_TASK_PRIORITY            tskIDLE_PRIORITY + 1
+#define USB_CONNECTED_TASK_PRIORITY tskIDLE_PRIORITY + 1
+
+bool master_mcu_is_on_bus = false; // Flag set to false by default, set to true when MCU acks on bus
 
 /* DSP settings struct ptr */
 struct DSP_Settings* dsp_settings_rs485;
@@ -386,9 +388,8 @@ void rs485_bus_task(void* pvParameters) {
             (uint16_t*)xRingbufferReceive(ac_link_bus_ptr->tx_ring_buffer_handle, &item_size, (TickType_t)10);
 
         if (item != NULL) {
-            item_size /= sizeof(uint16_t); // xRingbufferReceive updates item_size with number of bytes obtained.
-                                           // Each
-            // item is 16-bit
+            item_size /= sizeof(uint16_t); /* xRingbufferReceive updates item_size with number of bytes obtained. Each
+                                              item is 16-bit */
             uint16_t ring_buffer_packet[item_size];
             memcpy(ring_buffer_packet, item, sizeof(ring_buffer_packet)); // memcpy uses number of BYTES as param!
             vRingbufferReturnItem(ac_link_bus_ptr->tx_ring_buffer_handle, (void*)item); // Return Item
@@ -429,7 +430,9 @@ void rs485_bus_task(void* pvParameters) {
                     uint8_t bytes_to_read =
                         ac_link_bus_ptr->read_rx_message(transmitted_message, sizeof(transmitted_message));
                     if (bytes_to_read != temp_buf_length) {
-                        log_e("RS485 ERROR: TX did not send the correct amount of bytes, sent %d bytes", bytes_to_read);
+                        log_e("RS485 ERROR: TX did not send the correct amount of bytes, sent %d bytes but expected to "
+                              "send %d bytes",
+                              bytes_to_read, temp_buf_length);
                         for (uint8_t i = 0; i < bytes_to_read; i++) {
                             Serial.print(transmitted_message[i], HEX);
                             Serial.print(" ");
@@ -457,7 +460,6 @@ void rs485_bus_task(void* pvParameters) {
                         }
                     }
                 }
-                vTaskDelay(pdMS_TO_TICKS(10)); // Wait to process another item
             }
         } else {
             ac_link_bus_ptr->release_ring_buffer();
@@ -471,7 +473,7 @@ void rs485_bus_task(void* pvParameters) {
                 }
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -550,11 +552,13 @@ void Audison_AC_Link_Bus::convert_byte_to_rmt_item_9bit(uint8_t byte_to_convert,
      */
     uint16_t data = (0b11 << 10) | (is_address << 9) | (byte_to_convert << 1);
 
-    for (uint8_t item_index = 0; item_index < 11; item_index += 2) {
+    uint8_t item_index = 0;
+    for (uint8_t i = 0; i < 11; i += 2) {
         item_buffer[item_index].duration0 = 50;
-        item_buffer[item_index].level0 = (data >> item_index) & 1;
+        item_buffer[item_index].level0 = (data >> i) & 1;
         item_buffer[item_index].duration1 = 50;
-        item_buffer[item_index].level1 = (data >> (item_index + 1)) & 1;
+        item_buffer[item_index].level1 = (data >> (i + 1)) & 1;
+        item_index++;
     }
 }
 
