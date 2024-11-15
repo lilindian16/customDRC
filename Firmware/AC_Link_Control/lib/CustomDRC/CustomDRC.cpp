@@ -1,4 +1,8 @@
-#include "Custom_DRC.hpp"
+/**
+ * Author: Jaime Sequeira
+ */
+
+#include "CustomDRC.hpp"
 
 #include <Arduino.h>
 #include <ArduinoNvs.h>

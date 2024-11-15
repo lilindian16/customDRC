@@ -1,7 +1,12 @@
+/**
+ * Author: Jaime Sequeira
+ */
+
 #pragma once
-#include "Audison_AC_Link_Bus.hpp"
-#include "CDRCWebServer.hpp"
-#include "DRC_Encoder.hpp"
+
+#include "AudisonACLinkBus.hpp"
+#include "CustomDRCWebServer.hpp"
+#include "DRCEncoder.hpp"
 
 #define FW_VERSION "0.0.1"
 constexpr uint8_t DRC_FIRMWARE_VERSION[2] = {0x03, 0x00};
@@ -66,7 +71,19 @@ typedef enum {
     LED_MODE_SHUT_DOWN_MODE,
 } LED_Mode_t;
 
-/* Functions */
+/**
+ * Initialise the Custom Digital Remote Control (DRC). This loads all settings and starts up the webserver
+ */
 void init_custom_drc(void);
+
+/**
+ * Shut down the main DSP unit. Also enter hibernation mode - wake on acitivity on the bus
+ */
 void shut_down_dsp(void);
+
+/**
+ * Change the LED mode
+ *
+ * @param led_mode Mode to change to
+ */
 void change_led_mode(LED_Mode_t led_mode);

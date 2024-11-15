@@ -1,10 +1,15 @@
-#include "CDRCWebServer.hpp"
-#include "Audison_AC_Link_Bus.hpp"
+/**
+ * Author: Jaime Sequeira
+ */
+
+#include "CustomDRCWebServer.hpp"
+
+#include "AudisonACLinkBus.hpp"
+#include "CustomDRC.hpp"
 #include "CustomDRCcss.h"
 #include "CustomDRChtml.h"
 #include "CustomDRCjs.h"
-#include "Custom_DRC.hpp"
-#include "DRC_Encoder.hpp"
+#include "DRCEncoder.hpp"
 
 #include <Arduino.h>
 #include <ArduinoJson.h>

@@ -1,17 +1,10 @@
 /**
- * Software specifically for integrating into the Audison AC Link Bus (RS485)
- *
- * Audison AC Link bus uses 9-bit serial data on the RS485 bus. The 9th bit of
- * the data indicates whether the data is an address (1) or data byte (0)
- *
- * MCU used: ESP32 WROVER-IE Module (ESP32-D0WD-V3)
- *
  * Author: Jaime Sequeira
  */
 
 #pragma once
 
-#include "Custom_DRC.hpp"
+#include "CustomDRC.hpp"
 
 // FreeRTOS includes
 #include <freertos/FreeRTOS.h>
@@ -132,19 +125,31 @@ class Audison_AC_Link_Bus {
 
     /**
      * Updates a device with the latest DRC settings
+     * @param settings Pointer to DSP_Settings struct with settings to update device with
+     * @param receiver_address Address of device that needs to be updated
      */
     void update_device_with_latest_settngs(struct DSP_Settings* settings,
                                            uint8_t receiver_address = AC_LINK_ADDRESS_MASTER_MCU);
 
     /**
+     * Read bytes on the bus
      * @param data_buffer Empty buffer for data to be populated into
      * @param buffer_length Length of buffer provided (bytes)
      * @returns Amount of bytes read and put into buffer
      */
     uint8_t read_rx_message(uint8_t* data_buffer, uint8_t buffer_length);
 
+    /**
+     * Parse a message received on the bus
+     * @param message Pointer to buffer holding the received message
+     * @param message_len
+     */
     void parse_rx_message(uint8_t* message, uint8_t message_len);
 
+    /**
+     * Check if the main DSP is on the bus
+     * @returns true if DSP is active on the bus
+     */
     bool is_dsp_on_bus(void);
 
   private: // Private functions
@@ -182,15 +187,24 @@ class Audison_AC_Link_Bus {
     int init_rmt(void);
 
     /**
-     * Convert a byte to an RMT item
+     * Convert a byte to RMT items
+     * @param byte_to_convert
+     * @param is_address FLag to set the address bit in the 9-bit data
+     * @param item_buffer Buffer of empty RMT items - must be big enough to fit the converted items (5 items / byte)
      */
     void convert_byte_to_rmt_item_9bit(uint8_t byte_to_convert, bool is_address, rmt_item32_t* item_buffer);
 
     /**
      * Helper function to convert an entire packet of 9-bit data into RMT items
+     * @param packet Pointer to memory containing the data required to be converted
+     * @param packet_length
+     * @param item_buffer Buffer of empty RMT items - must be big enough to store all converted items (5 items / byte)
      */
     void convert_packet_to_rmt_items(uint8_t* packet, uint8_t packet_length, rmt_item32_t* item_buffer);
 
+    /**
+     * Read all data in the rx buffer from the bus. Will also parse messages if they are complete
+     */
     void purge_bus_rx_buffer(void);
 
     int tx_pin;

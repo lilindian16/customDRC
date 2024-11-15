@@ -1,15 +1,8 @@
 /**
- * Software specifically for integrating into the Audison AC Link Bus (RS485)
- *
- * Audison AC Link bus uses 9-bit serial data on the RS485 bus. The 9th bit of
- * the data indicates whether the data is an address (1) or data byte (0)
- *
- * MCU used: ESP32 WROVER-IE Module (ESP32-D0WD-V3)
- *
  * Author: Jaime Sequeira
  */
 
-#include "Audison_AC_Link_Bus.hpp"
+#include "AudisonACLinkBus.hpp"
 #include <Arduino.h>
 #include <SoftwareSerial.h> // https: //github.com/plerup/espsoftwareserial/tree/main
 

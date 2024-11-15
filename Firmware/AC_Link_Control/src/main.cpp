@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <Custom_DRC.hpp>
+#include <CustomDRC.hpp>
 
 void setup(void) {
     init_custom_drc();

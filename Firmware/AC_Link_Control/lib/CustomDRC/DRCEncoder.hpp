@@ -1,4 +1,9 @@
+/**
+ * Author: Jaime Sequeira
+ */
+
 #pragma once
+
 #include <Arduino.h>
 
 void init_drc_encoders(struct DSP_Settings* dsp_settings);

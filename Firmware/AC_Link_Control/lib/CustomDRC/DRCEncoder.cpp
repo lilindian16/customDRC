@@ -1,8 +1,12 @@
-#include "DRC_Encoder.hpp"
+/**
+ * Author: Jaime Sequeira
+ */
 
-#include "Audison_AC_Link_Bus.hpp"
-#include "CDRCWebServer.hpp"
-#include "Custom_DRC.hpp"
+#include "DRCEncoder.hpp"
+
+#include "AudisonACLinkBus.hpp"
+#include "CustomDRC.hpp"
+#include "CustomDRCWebServer.hpp"
 
 #include <Arduino.h>
 #include <ESP32Encoder.h>
