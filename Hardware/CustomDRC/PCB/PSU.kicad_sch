@@ -1395,12 +1395,6 @@
 		(uuid "d18b10c8-2e49-412d-9099-5cae0737f057")
 	)
 	(junction
-		(at 95.25 101.6)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "fc4660fc-73bb-4b6b-9b2b-8aa5257d39b9")
-	)
-	(junction
 		(at 222.25 82.55)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -1468,7 +1462,7 @@
 	)
 	(wire
 		(pts
-			(xy 88.9 101.6) (xy 95.25 101.6)
+			(xy 93.98 101.6) (xy 133.35 101.6)
 		)
 		(stroke
 			(width 0)
@@ -1638,17 +1632,7 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 102.87) (xy 95.25 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "549f86d8-87c8-41e9-bd68-93c9a7c614c7")
-	)
-	(wire
-		(pts
-			(xy 88.9 101.6) (xy 88.9 102.87)
+			(xy 93.98 101.6) (xy 93.98 102.87)
 		)
 		(stroke
 			(width 0)
@@ -1945,16 +1929,6 @@
 			(type default)
 		)
 		(uuid "e8414129-48eb-48f7-94a8-07552c96a184")
-	)
-	(wire
-		(pts
-			(xy 95.25 101.6) (xy 133.35 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f0fc288c-585f-4675-a3ff-f501c8707805")
 	)
 	(wire
 		(pts
@@ -2395,82 +2369,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:TestPoint_Small")
-		(at 95.25 102.87 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "1b6b8c02-0eb8-4d8d-87bd-3b0fedd491f2")
-		(property "Reference" "TP201"
-			(at 98.298 104.394 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint_Small"
-			(at 93.98 101.6001 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
-			(at 90.17 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 90.17 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 95.25 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer" ""
-			(at 95.25 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "7a4608ca-c005-4883-8e54-1d79d3f9a428")
-		)
-		(instances
-			(project "CDRC"
-				(path "/77fe34f2-8fb9-443a-b963-d96f8958fb53/b65e5f69-768f-4a28-b5d1-2ae9c8049607"
-					(reference "TP201")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R_Small")
 		(at 222.25 91.44 90)
 		(unit 1)
@@ -2664,7 +2562,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 88.9 102.87 0)
+		(at 93.98 102.87 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2672,7 +2570,7 @@
 		(dnp no)
 		(uuid "36fa4433-0bc6-4f13-8338-9021e743ff29")
 		(property "Reference" "#PWR0201"
-			(at 88.9 109.22 0)
+			(at 93.98 109.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2681,7 +2579,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 88.9 106.68 0)
+			(at 93.98 106.68 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2689,7 +2587,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 88.9 102.87 0)
+			(at 93.98 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2698,7 +2596,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 88.9 102.87 0)
+			(at 93.98 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2707,7 +2605,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 88.9 102.87 0)
+			(at 93.98 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
