@@ -1,8 +1,8 @@
-# Audison DRC Interface Project
+# Bit Ten DRC Interface Project
 
-## A simple, cheap and opensource alternative to the Audison bit Ten DRC
+## A simple, cheap and opensource alternative to the Bit Ten DRC
 
-Welcome to the project. The aim is to reverse engineer the Audison DRC and create a custom version of it. The end-goal is to have a unit that stays tucked inside the dashboard. We will use potentiometers to control the main volume and subwoofer volume on the fly. Additional controls can be accessed with a web interface - I'm thinking an ESP32 to make life easy.
+Welcome to the project. The aim is to reverse engineer the DRC and create a custom version of it. The end-goal is to have a unit that stays tucked inside the dashboard. We will use potentiometers to control the main volume and subwoofer volume on the fly. Additional controls can be accessed with a web interface - I'm thinking an ESP32 to make life easy.
 
 These are the required steps for the project:
 
