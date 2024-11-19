@@ -2,14 +2,14 @@
 
 ## A simple, cheap and opensource alternative to the Bit Ten DRC
 
-Welcome to the project. The aim is to reverse engineer the DRC and create a custom version of it. The end-goal is to have a unit that stays tucked inside the dashboard. We will use potentiometers to control the main volume and subwoofer volume on the fly. Additional controls can be accessed with a web interface - I'm thinking an ESP32 to make life easy.
+Welcome to the project. The aim is to reverse engineer the DRC and create a custom version of it. The end-goal is to have a unit that stays tucked inside the dashboard. We will use rotary encoders to control the main volume and subwoofer volume on the fly. Additional controls can be accessed with a web interface - I'm thinking an ESP32 to make life easy.
 
 These are the required steps for the project:
 
-- [ ] Teardown of the DRC. Work out the basic electronics and schema
-- [ ] Snoop on the DRC interface with the main DSP unit
-- [ ] Create a prototype using a breadboard. Verify functionality
-- [ ] Create a PCB and housing to replace the DRC with our version
+- [x] Teardown of the DRC. Work out the basic electronics and schema
+- [x] Snoop on the DRC interface with the main DSP unit
+- [x] Create a prototype using a breadboard. Verify functionality
+- [x] Create a PCB and housing to replace the DRC with our version
 
 ## RS485 Packet Capture and Decoding
 
@@ -32,3 +32,15 @@ https://docs.google.com/spreadsheets/d/1yKb0Uep4GiwMZgCa3Em3xfYRrIc_w2GCmBEI8sHW
 | ![CDRC Web Interface - iPhone 12 Pro](Images/CDRC_webpage_iphone12pro.png) |
 | :------------------------------------------------------------------------: |
 |                    _CDRC Web Interface - iPhone 12 Pro_                    |
+
+## Update 1 - Rev A Hardware
+
+| ![Custom DRC - Rev A Assembly Render](RevA_assem_render.png) |
+| :----------------------------------------------------------: |
+|             _Custom DRC - Rev A Assembly Render_             |
+
+| ![Custom DRC - Rev A Manufactured](RevA_Manuf.jpg) |
+| :------------------------------------------------: |
+|         _Custom DRC - Rev A Manufactured_          |
+
+Rev A working well. Mod required to jump the RS485 RX line to a test-point pad to allow for wakeup on activity (requires pin to be in RTC power domain)
