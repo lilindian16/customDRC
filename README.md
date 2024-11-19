@@ -35,12 +35,12 @@ https://docs.google.com/spreadsheets/d/1yKb0Uep4GiwMZgCa3Em3xfYRrIc_w2GCmBEI8sHW
 
 ## Update 1 - Rev A Hardware
 
-| ![Custom DRC - Rev A Assembly Render](RevA_assem_render.png) |
-| :----------------------------------------------------------: |
-|             _Custom DRC - Rev A Assembly Render_             |
+| ![Custom DRC - Rev A Assembly Render](Images/RevA_assem_render.png) |
+| :-----------------------------------------------------------------: |
+|                _Custom DRC - Rev A Assembly Render_                 |
 
-| ![Custom DRC - Rev A Manufactured](RevA_Manuf.jpg) |
-| :------------------------------------------------: |
-|         _Custom DRC - Rev A Manufactured_          |
+| ![Custom DRC - Rev A Manufactured](Images/RevA_Manuf.jpg) |
+| :-------------------------------------------------------: |
+|             _Custom DRC - Rev A Manufactured_             |
 
 Rev A working well. Mod required to jump the RS485 RX line to a test-point pad to allow for wakeup on activity (requires pin to be in RTC power domain)
