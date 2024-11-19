@@ -464,7 +464,7 @@
     "classes": [
       {
         "bus_width": 12,
-        "clearance": 0.2,
+        "clearance": 0.15,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -492,10 +492,10 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "PCB Model/SS_Layer_DXF/",
+      "plot": "../ProductionFiles/",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "../BoardModels/CDRC_RevB.step",
       "svg": "",
       "vrml": ""
     },

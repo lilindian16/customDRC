@@ -113,6 +113,163 @@
 				)
 			)
 		)
+		(symbol "Device:C_Polarized_Small"
+			(pin_numbers hide)
+			(pin_names
+				(offset 0.254) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(at 0.254 1.778 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C_Polarized_Small"
+				(at 0.254 -2.032 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Polarized capacitor, small symbol"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "CP_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "C_Polarized_Small_0_1"
+				(rectangle
+					(start -1.524 -0.3048)
+					(end 1.524 -0.6858)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(rectangle
+					(start -1.524 0.6858)
+					(end 1.524 0.3048)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 1.524) (xy -0.762 1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.016 1.27) (xy -1.016 1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_Polarized_Small_1_1"
+				(pin passive line
+					(at 0 2.54 270)
+					(length 1.8542)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -2.54 90)
+					(length 1.8542)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "Device:C_Small"
 			(pin_numbers hide)
 			(pin_names
@@ -1383,6 +1540,18 @@
 		(uuid "a608fe24-352f-47d1-8664-3df02a245dcb")
 	)
 	(junction
+		(at 123.19 82.55)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "af47bece-4d37-4695-b969-1a79adaf8c8c")
+	)
+	(junction
+		(at 123.19 101.6)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "bba7e507-d0ef-4708-979c-9f414897eaf2")
+	)
+	(junction
 		(at 195.58 82.55)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -1462,7 +1631,7 @@
 	)
 	(wire
 		(pts
-			(xy 93.98 101.6) (xy 133.35 101.6)
+			(xy 93.98 101.6) (xy 123.19 101.6)
 		)
 		(stroke
 			(width 0)
@@ -1660,6 +1829,16 @@
 		)
 		(uuid "5e4707c6-a069-4b51-b97f-4e2a27b7797b")
 	)
+	(wire
+		(pts
+			(xy 123.19 101.6) (xy 133.35 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5f9230a8-512f-4f21-abd0-8852a566523a")
+	)
 	(polyline
 		(pts
 			(xy 104.648 111.252) (xy 123.952 111.252)
@@ -1692,7 +1871,7 @@
 	)
 	(wire
 		(pts
-			(xy 116.84 82.55) (xy 129.54 82.55)
+			(xy 113.03 82.55) (xy 123.19 82.55)
 		)
 		(stroke
 			(width 0)
@@ -1712,7 +1891,7 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 82.55) (xy 111.76 82.55)
+			(xy 95.25 82.55) (xy 107.95 82.55)
 		)
 		(stroke
 			(width 0)
@@ -1739,6 +1918,16 @@
 			(type default)
 		)
 		(uuid "97d36454-f6f3-4bfa-8d95-247f29da1f19")
+	)
+	(wire
+		(pts
+			(xy 123.19 82.55) (xy 129.54 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "984bba2d-9e9f-4625-ae3d-8cc88a933aa0")
 	)
 	(polyline
 		(pts
@@ -1772,7 +1961,7 @@
 	)
 	(polyline
 		(pts
-			(xy 123.698 111.252) (xy 123.698 70.358)
+			(xy 115.062 111.252) (xy 115.062 70.358)
 		)
 		(stroke
 			(width 0)
@@ -1812,7 +2001,7 @@
 	)
 	(polyline
 		(pts
-			(xy 123.698 70.358) (xy 104.648 70.358)
+			(xy 115.062 70.358) (xy 104.648 70.358)
 		)
 		(stroke
 			(width 0)
@@ -1822,7 +2011,7 @@
 	)
 	(polyline
 		(pts
-			(xy 231.14 70.358) (xy 123.698 70.358)
+			(xy 231.14 70.358) (xy 115.062 70.358)
 		)
 		(stroke
 			(width 0)
@@ -1902,6 +2091,16 @@
 	)
 	(wire
 		(pts
+			(xy 123.19 93.98) (xy 123.19 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "da8a0ae9-a847-4c0d-ba00-5dd0d93fdce3")
+	)
+	(wire
+		(pts
 			(xy 167.64 87.63) (xy 182.88 87.63)
 		)
 		(stroke
@@ -1929,6 +2128,16 @@
 			(type default)
 		)
 		(uuid "e8414129-48eb-48f7-94a8-07552c96a184")
+	)
+	(wire
+		(pts
+			(xy 123.19 88.9) (xy 123.19 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ef1f0686-3f5b-4e8e-8066-c6c0ffd02ce7")
 	)
 	(wire
 		(pts
@@ -2276,7 +2485,7 @@
 	)
 	(symbol
 		(lib_id "Device:D_Schottky_Small")
-		(at 114.3 82.55 180)
+		(at 110.49 82.55 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2284,7 +2493,7 @@
 		(dnp no)
 		(uuid "17668f89-ac5e-48e1-ac55-2bcc6bb6b453")
 		(property "Reference" "D202"
-			(at 114.3 77.47 0)
+			(at 110.49 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2292,7 +2501,7 @@
 			)
 		)
 		(property "Value" "US1M"
-			(at 114.3 79.502 0)
+			(at 110.49 79.502 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2300,7 +2509,7 @@
 			)
 		)
 		(property "Footprint" "Diode_SMD:D_SMA_Handsoldering"
-			(at 114.3 82.55 90)
+			(at 110.49 82.55 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2309,7 +2518,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 114.3 82.55 90)
+			(at 110.49 82.55 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2318,7 +2527,7 @@
 			)
 		)
 		(property "Description" "Schottky diode, small symbol"
-			(at 114.3 82.55 0)
+			(at 110.49 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2327,7 +2536,7 @@
 			)
 		)
 		(property "LCSC" "C412437"
-			(at 114.3 82.55 0)
+			(at 110.49 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2336,7 +2545,7 @@
 			)
 		)
 		(property "MPN" "US1M"
-			(at 114.3 82.55 0)
+			(at 110.49 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2345,7 +2554,7 @@
 			)
 		)
 		(property "Manufacturer" "MDD(Microdiode Semiconductor)"
-			(at 114.3 82.55 0)
+			(at 110.49 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3104,6 +3313,85 @@
 			(project "CDRC"
 				(path "/77fe34f2-8fb9-443a-b963-d96f8958fb53/b65e5f69-768f-4a28-b5d1-2ae9c8049607"
 					(reference "TP203")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Polarized_Small")
+		(at 123.19 91.44 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp yes)
+		(uuid "78fdd071-09ee-471e-8cdf-6aadd370fc07")
+		(property "Reference" "C206"
+			(at 120.65 89.6239 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "22u"
+			(at 120.65 92.1639 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:CP_Elec_6.3x5.4_Nichicon"
+			(at 123.19 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 123.19 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Polarized capacitor, small symbol"
+			(at 123.19 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Voltage Rating" "50V"
+			(at 119.38 94.742 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(color 255 0 255 1)
+				)
+			)
+		)
+		(pin "2"
+			(uuid "7b0eb6ef-47eb-40b5-ba2f-2146adc98035")
+		)
+		(pin "1"
+			(uuid "1093ce76-45bf-4dde-bfd4-a9eb930d20ac")
+		)
+		(instances
+			(project ""
+				(path "/77fe34f2-8fb9-443a-b963-d96f8958fb53/b65e5f69-768f-4a28-b5d1-2ae9c8049607"
+					(reference "C206")
 					(unit 1)
 				)
 			)

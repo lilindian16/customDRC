@@ -2068,6 +2068,12 @@
 		(uuid "9ec5306f-cbae-42f2-821a-b52c3e5b1869")
 	)
 	(junction
+		(at 167.64 147.32)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a26bffdc-dbe3-4ea9-9cea-9b3a5a4e8770")
+	)
+	(junction
 		(at 121.92 77.47)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2102,12 +2108,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c2c6db8d-8dfe-4c05-81b9-e6361bc00a53")
-	)
-	(junction
-		(at 177.8 147.32)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "c2f18e86-d911-4385-9a41-83eabc6288ec")
 	)
 	(junction
 		(at 120.65 120.65)
@@ -2324,16 +2324,6 @@
 			(type default)
 		)
 		(uuid "2167e883-42f9-41ae-b685-60bdd372c11b")
-	)
-	(wire
-		(pts
-			(xy 172.72 147.32) (xy 167.64 147.32)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "24f3250f-4f1d-44bb-a879-2b1b2b210b48")
 	)
 	(wire
 		(pts
@@ -2557,7 +2547,7 @@
 	)
 	(wire
 		(pts
-			(xy 177.8 147.32) (xy 180.34 147.32)
+			(xy 162.56 147.32) (xy 167.64 147.32)
 		)
 		(stroke
 			(width 0)
@@ -3337,13 +3327,13 @@
 	)
 	(wire
 		(pts
-			(xy 180.34 148.59) (xy 180.34 147.32)
+			(xy 167.64 147.32) (xy 172.72 147.32)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "eb712847-0f28-4628-9900-a031790453af")
+		(uuid "e8b20054-26cc-4b9b-bd23-0efef53a7fd5")
 	)
 	(wire
 		(pts
@@ -7694,16 +7684,16 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint_Small")
-		(at 180.34 148.59 0)
+		(at 162.56 147.32 0)
 		(mirror x)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "c9718853-f5c6-4dd2-afea-13e06415fca6")
 		(property "Reference" "TP508"
-			(at 177.292 150.368 0)
+			(at 159.512 149.098 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7712,7 +7702,7 @@
 			)
 		)
 		(property "Value" "TestPoint_Small"
-			(at 181.61 147.3201 0)
+			(at 163.83 146.0501 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7722,7 +7712,7 @@
 			)
 		)
 		(property "Footprint" "TestPoint:TestPoint_Keystone_5000-5004_Miniature"
-			(at 185.42 148.59 0)
+			(at 167.64 147.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7731,7 +7721,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 185.42 148.59 0)
+			(at 167.64 147.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7740,7 +7730,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 180.34 148.59 0)
+			(at 162.56 147.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7749,7 +7739,7 @@
 			)
 		)
 		(property "LCSC" "C5199801"
-			(at 180.34 148.59 0)
+			(at 162.56 147.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7758,7 +7748,7 @@
 			)
 		)
 		(property "MPN" " RH-5001"
-			(at 180.34 148.59 0)
+			(at 162.56 147.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7767,7 +7757,7 @@
 			)
 		)
 		(property "Manufacturer" " ronghe"
-			(at 180.34 148.59 0)
+			(at 162.56 147.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)

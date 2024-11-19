@@ -1590,9 +1590,9 @@
 		(at 48.26 71.12 180)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "4d4cc13a-f015-4f59-b7a1-3292657905a9")
 		(property "Reference" "TP101"
 			(at 51.308 72.644 0)
