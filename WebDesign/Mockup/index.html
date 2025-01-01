@@ -98,6 +98,67 @@
           </fieldset>
         </section>
 
+        <!-- WiFi credentials Update -->
+        <section id="credentialsConfig">
+          <label for="credentialsUpdateForm">WiFi Credentials Update</label>
+          <form action="" id="credentialsUpdateForm">
+            <input
+              type="text"
+              name="ssidInput"
+              placeholder="SSID"
+              aria-label="Text"
+              id="wifiCredentailsSSID"
+            />
+            <input
+              type="password"
+              name="passwordInput"
+              placeholder="Password"
+              aria-label="Text"
+              id="wifiCredentailsPassword"
+              aria-invalid="true"
+            />
+            <small>Minimum 8 characters</small>
+          </form>
+        </section>
+
+        <!-- Modal Button -->
+        <section id="modal">
+          <input type="button" id="credentialsUpdateButton" data-target="modal-example" onclick="toggleModal(event)" value="Update WiFi Credentials" disabled></input>
+        </section>
+        <!-- ./ Modal -->
+
+        <!-- Modal -->
+        <dialog id="modal-example">
+          <article>
+            <header>
+              <button
+                aria-label="Close"
+                rel="prev"
+                data-target="modal-example"
+                onclick="toggleModal(event)"
+              ></button>
+              <h3>Update WiFi Credentials?</h3>
+            </header>
+            <footer>
+              <button
+                role="button"
+                class="secondary"
+                data-target="modal-example"
+                onclick="toggleModal(event)"
+              >
+                Cancel</button
+              ><button
+                autofocus
+                data-target="modal-example"
+                onclick="toggleModal(event)"
+                id="confirmCredentialsUpdateButton"
+              >
+                Confirm
+              </button>
+            </footer>
+          </article>
+        </dialog>
+
         <!-- OTA Update File Upload -->
         <section>
           <label for="ota_form">OTA Update</label>

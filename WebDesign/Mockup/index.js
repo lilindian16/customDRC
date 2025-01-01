@@ -14,6 +14,19 @@ let current_source_label = document.getElementById("currentSourceLabel");
 let change_source_button = document.getElementById("changeSourceButton");
 let dsp_memory_a_radio = document.getElementById("DSPMemA");
 let dsp_memory_b_radio = document.getElementById("DSPMemB");
+let updateWifiCredentialsForm = document.getElementById(
+  "credentialsUpdateForm"
+);
+let credentialsUpdateButton = document.getElementById(
+  "credentialsUpdateButton"
+);
+let credentialsModal = document.getElementById("confirmCredentialsModal");
+let ssidInput = document.getElementById("wifiCredentailsSSID");
+let passwordInput = document.getElementById("wifiCredentailsPassword");
+let confirmCredentialsUpdateButton = document.getElementById(
+  "confirmCredentialsUpdateButton"
+);
+
 let ota_file_upload_button = document.getElementById("upload_ota_file_button");
 let ota_file_upload_progress_bar = document.getElementById(
   "ota_file_upload_progress"
@@ -111,6 +124,7 @@ function update_range_display(range_to_update, value) {
   range_to_update.value = value;
   var inner_span_str = range_to_update.id + "Value";
   document.getElementById(inner_span_str).innerHTML = value;
+  return false;
 }
 
 function on_mute_switch_change() {
@@ -158,6 +172,17 @@ function on_ota_file_upload_button_clicked(event) {
   event.preventDefault();
 }
 
+function on_credeitals_form_input(event) {
+  let password = passwordInput.value;
+  if (password.length >= 8) {
+    passwordInput.setAttribute("aria-invalid", "false");
+    credentialsUpdateButton.disabled = false;
+  } else {
+    passwordInput.setAttribute("aria-invalid", "true");
+    credentialsUpdateButton.disabled = true;
+  }
+}
+
 function on_change_source_button_clicked(event) {
   ws_message = "{changeSource: 1}";
   websocket.send(ws_message);
@@ -176,6 +201,8 @@ function onload(event) {
   document
     .getElementById("ota_form")
     .addEventListener("submit", on_ota_file_upload_button_clicked);
+
+  updateWifiCredentialsForm.addEventListener("input", on_credeitals_form_input);
 
   document.getElementsByName("dspMemory").forEach(function (e) {
     e.addEventListener("click", function () {
@@ -248,3 +275,93 @@ function initWebSocket() {
   websocket.onclose = onClose;
   websocket.onmessage = onMessage;
 }
+
+/*
+ * Modal
+ *
+ * Pico.css - https://picocss.com
+ * Copyright 2019-2024 - Licensed under MIT
+ */
+
+// Config
+const isOpenClass = "modal-is-open";
+const openingClass = "modal-is-opening";
+const closingClass = "modal-is-closing";
+const scrollbarWidthCssVar = "--pico-scrollbar-width";
+const animationDuration = 400; // ms
+let visibleModal = null;
+
+// Toggle modal
+const toggleModal = (event) => {
+  event.preventDefault();
+  const modal = document.getElementById(event.currentTarget.dataset.target);
+  if (!modal) return;
+  modal && (modal.open ? closeModal(modal) : openModal(modal));
+};
+
+// Open modal
+const openModal = (modal) => {
+  const { documentElement: html } = document;
+  const scrollbarWidth = getScrollbarWidth();
+  if (scrollbarWidth) {
+    html.style.setProperty(scrollbarWidthCssVar, `${scrollbarWidth}px`);
+  }
+  html.classList.add(isOpenClass, openingClass);
+  setTimeout(() => {
+    visibleModal = modal;
+    html.classList.remove(openingClass);
+  }, animationDuration);
+  modal.showModal();
+};
+
+// Close modal
+const closeModal = (modal) => {
+  visibleModal = null;
+  const { documentElement: html } = document;
+  html.classList.add(closingClass);
+  setTimeout(() => {
+    html.classList.remove(closingClass, isOpenClass);
+    html.style.removeProperty(scrollbarWidthCssVar);
+    modal.close();
+  }, animationDuration);
+};
+
+confirmCredentialsUpdateButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  let ssid = ssidInput.value;
+  let password = passwordInput.value;
+  if (password.length >= 8) {
+    console.log(`SSID: ${ssid}\tPassword: ${password}`);
+    let ws_message = `{\n"ssid": "${ssid}",\n"password": "${password}"\n}`;
+    console.log(ws_message);
+  } else {
+    console.error("Password must be 8 or more characters");
+  }
+});
+
+// Close with a click outside
+document.addEventListener("click", (event) => {
+  if (visibleModal === null) return;
+  const modalContent = visibleModal.querySelector("article");
+  const isClickInside = modalContent.contains(event.target);
+  !isClickInside && closeModal(visibleModal);
+});
+
+// Close with Esc key
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && visibleModal) {
+    closeModal(visibleModal);
+  }
+});
+
+// Get scrollbar width
+const getScrollbarWidth = () => {
+  const scrollbarWidth =
+    window.innerWidth - document.documentElement.clientWidth;
+  return scrollbarWidth;
+};
+
+// Is scrollbar visible
+const isScrollbarVisible = () => {
+  return document.body.scrollHeight > screen.height;
+};
