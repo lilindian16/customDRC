@@ -1,4 +1,4 @@
-23722529098858855
+23732927905194647
 AstuteFootprints
 ANT1005LL14R2400A
 
@@ -8,6 +8,13 @@ ANT1005LL14R2400A
 4
 AstuteFootprints
 Astute Access Controller Header
+Mini-PCI Express bus connector (https://s3.amazonaws.com/fit-iot/download/facet-cards/documents/PCI_Express_miniCard_Electromechanical_specs_rev1.2.pdf#page=11)
+mini pcie
+0
+54
+53
+AstuteFootprints
+Astute Access Controller Header_5.0
 Mini-PCI Express bus connector (https://s3.amazonaws.com/fit-iot/download/facet-cards/documents/PCI_Express_miniCard_Electromechanical_specs_rev1.2.pdf#page=11)
 mini pcie
 0
@@ -62,6 +69,27 @@ Switch
 0
 4
 4
+AstuteFootprints
+NetTie-2_SMD_Pad0.5mm
+Net tie, 2 pin, 0.5mm square SMD pads
+net tie
+0
+2
+2
+AstuteFootprints
+NetTie-2_SMD_Pad0.15mm
+Net tie, 2 pin, 0.5mm square SMD pads
+net tie
+0
+2
+2
+AstuteFootprints
+NetTie_SMD_Pad0.15mm
+Net tie, 2 pin, 0.5mm square SMD pads
+net tie
+0
+2
+2
 AstuteFootprints
 P75-B1 Straight Pogo Pin 1.45mm OD
 
@@ -2709,12 +2737,26 @@ speaker CUI
 2
 2
 CDRC_Footprints
+Capacitor_D6.3xL12mm_SMD
+
+
+0
+2
+2
+CDRC_Footprints
 M208900705
 M20-8900705-4
 Connector
 0
 7
 7
+CDRC_Footprints
+qr_code
+
+
+0
+0
+0
 Calibration_Scale
 Gauge_10mm_Type1_CopperTop
 Gauge, Massstab, 10mm, CopperTop, Type 1,

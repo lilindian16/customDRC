@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "CDRC - Custom DRC for Bit 10D")
-		(date "01-11-2024")
+		(date "25-11-2024")
 		(rev "B")
 		(company "JS HW")
 	)
@@ -1581,7 +1581,7 @@
 	)
 	(polyline
 		(pts
-			(xy 69.85 70.358) (xy 104.648 70.358)
+			(xy 69.85 70.358) (xy 104.394 70.358)
 		)
 		(stroke
 			(width 0)
@@ -1621,7 +1621,7 @@
 	)
 	(polyline
 		(pts
-			(xy 69.85 111.252) (xy 104.648 111.252)
+			(xy 69.85 111.252) (xy 104.394 111.252)
 		)
 		(stroke
 			(width 0)
@@ -1771,7 +1771,7 @@
 	)
 	(polyline
 		(pts
-			(xy 104.648 111.252) (xy 104.648 70.358)
+			(xy 104.394 111.252) (xy 104.394 70.358)
 		)
 		(stroke
 			(width 0)
@@ -1841,7 +1841,7 @@
 	)
 	(polyline
 		(pts
-			(xy 104.648 111.252) (xy 123.952 111.252)
+			(xy 104.394 111.252) (xy 123.952 111.252)
 		)
 		(stroke
 			(width 0)
@@ -1871,7 +1871,7 @@
 	)
 	(wire
 		(pts
-			(xy 113.03 82.55) (xy 123.19 82.55)
+			(xy 111.76 82.55) (xy 123.19 82.55)
 		)
 		(stroke
 			(width 0)
@@ -1891,7 +1891,7 @@
 	)
 	(wire
 		(pts
-			(xy 95.25 82.55) (xy 107.95 82.55)
+			(xy 95.25 82.55) (xy 106.68 82.55)
 		)
 		(stroke
 			(width 0)
@@ -2001,7 +2001,7 @@
 	)
 	(polyline
 		(pts
-			(xy 115.062 70.358) (xy 104.648 70.358)
+			(xy 115.062 70.358) (xy 104.394 70.358)
 		)
 		(stroke
 			(width 0)
@@ -2222,6 +2222,18 @@
 			)
 		)
 		(uuid "5df5fd0f-fdce-4391-9e9d-9200e8b44806")
+	)
+	(text "C206 MOUNTED AS SMD \nINSTEAD OF THROUG-HOLE"
+		(exclude_from_sim no)
+		(at 116.84 105.41 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 0 255 1)
+			)
+			(justify left)
+		)
+		(uuid "758bef65-4467-4cae-9054-8edaf895c659")
 	)
 	(text "DC IN IS PROTECTED UPSTREAM BY MOV AND DAMPING CAPS 100V RATED"
 		(exclude_from_sim no)
@@ -2485,7 +2497,7 @@
 	)
 	(symbol
 		(lib_id "Device:D_Schottky_Small")
-		(at 110.49 82.55 180)
+		(at 109.22 82.55 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2493,7 +2505,7 @@
 		(dnp no)
 		(uuid "17668f89-ac5e-48e1-ac55-2bcc6bb6b453")
 		(property "Reference" "D202"
-			(at 110.49 77.47 0)
+			(at 109.22 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2501,7 +2513,7 @@
 			)
 		)
 		(property "Value" "US1M"
-			(at 110.49 79.502 0)
+			(at 109.22 79.502 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2509,7 +2521,7 @@
 			)
 		)
 		(property "Footprint" "Diode_SMD:D_SMA_Handsoldering"
-			(at 110.49 82.55 90)
+			(at 109.22 82.55 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2518,7 +2530,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 110.49 82.55 90)
+			(at 109.22 82.55 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2527,7 +2539,7 @@
 			)
 		)
 		(property "Description" "Schottky diode, small symbol"
-			(at 110.49 82.55 0)
+			(at 109.22 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2536,7 +2548,7 @@
 			)
 		)
 		(property "LCSC" "C412437"
-			(at 110.49 82.55 0)
+			(at 109.22 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2545,7 +2557,7 @@
 			)
 		)
 		(property "MPN" "US1M"
-			(at 110.49 82.55 0)
+			(at 109.22 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2554,7 +2566,7 @@
 			)
 		)
 		(property "Manufacturer" "MDD(Microdiode Semiconductor)"
-			(at 110.49 82.55 0)
+			(at 109.22 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3324,12 +3336,12 @@
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom no)
+		(in_bom yes)
 		(on_board yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "78fdd071-09ee-471e-8cdf-6aadd370fc07")
 		(property "Reference" "C206"
-			(at 120.65 89.6239 0)
+			(at 120.65 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3337,8 +3349,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22u"
-			(at 120.65 92.1639 0)
+		(property "Value" "100U"
+			(at 120.65 92.456 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3346,7 +3358,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:CP_Elec_6.3x5.4_Nichicon"
+		(property "Footprint" "CDRC_Footprints:Capacitor_D6.3xL12mm_SMD"
 			(at 123.19 91.44 0)
 			(effects
 				(font
@@ -3380,6 +3392,33 @@
 					(size 1.27 1.27)
 					(color 255 0 255 1)
 				)
+			)
+		)
+		(property "MPN" "ERZ1HM101E12OT"
+			(at 123.19 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "AISHI(Aihua Group)"
+			(at 123.19 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C160200"
+			(at 123.19 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
 			)
 		)
 		(pin "2"

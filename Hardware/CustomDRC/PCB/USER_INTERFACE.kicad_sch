@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "CDRC - Custom DRC for Bit 10D")
-		(date "01-11-2024")
+		(date "25-11-2024")
 		(rev "B")
 		(company "JS HW")
 	)
@@ -5228,7 +5228,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "ST_PH_S2B-PH-SM4"
+		(property "Value" "JST_PH_S2B-PH-SM4"
 			(at 97.79 39.116 0)
 			(effects
 				(font
@@ -5256,6 +5256,33 @@
 			)
 		)
 		(property "Description" "Generic connectable mounting pin connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 95.25 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "JST"
+			(at 95.25 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" " S2B-PH-SM4-TB(LF)(SN)"
+			(at 95.25 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C295747"
 			(at 95.25 41.91 0)
 			(effects
 				(font
@@ -6683,6 +6710,33 @@
 				(hide yes)
 			)
 		)
+		(property "LCSC" "C265104"
+			(at 73.66 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "S5B-PH-SM4-TB(LF)(SN)"
+			(at 73.66 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "JST"
+			(at 73.66 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "3"
 			(uuid "6170f3b0-bcdf-4884-a7e7-97e6657d15e3")
 		)
@@ -7955,6 +8009,33 @@
 			)
 		)
 		(property "Description" "Generic connectable mounting pin connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 73.66 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C265104"
+			(at 73.66 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "S5B-PH-SM4-TB(LF)(SN)"
+			(at 73.66 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "JST"
 			(at 73.66 87.63 0)
 			(effects
 				(font

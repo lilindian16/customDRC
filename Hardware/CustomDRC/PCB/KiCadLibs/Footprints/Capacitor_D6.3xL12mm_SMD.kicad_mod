@@ -1,0 +1,270 @@
+(footprint "Capacitor_D6.3xL12mm_SMD"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(property "Reference" "C206"
+		(at 3.4 0 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "42104485-1214-47bd-a243-5a450b0d573c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "100U"
+		(at -9.9 2.1 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "cd02110d-4f1e-45bc-a9e3-d202bbf716ab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" "CDRC_Footprints:Capacitor_D6.3xL12mm_SMD"
+		(at 0 4.8 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "6c48503d-6afc-4697-9039-a2cb02c2271e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 4.8 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "e8c5076d-5b7f-4678-8116-92101345e5c5")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "Polarized capacitor, small symbol"
+		(at 0 4.8 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "c77dcc8d-3bbf-490e-8add-bcee0b686c73")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Voltage Rating" "50V"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "4b55105d-f1ff-4b4c-b625-202f2625709f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "MPN" "ERZ1HM101E12OT"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "f273d654-49b1-44b1-a275-e924ab72886e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Manufacturer" "AISHI(Aihua Group)"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "7e9ea3f3-e8a8-4654-b70a-710f55a3308e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "LCSC" "C160200"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "bfdf7439-8acf-459d-8ea2-eed3c951343c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_line
+		(start -18 -3.1)
+		(end -18 3.1)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "31ea1ce0-57c9-4a82-b715-49505ccd7682")
+	)
+	(fp_line
+		(start -18 3.1)
+		(end 0 3.1)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "de102d33-0585-431a-a6c5-346b6537d404")
+	)
+	(fp_line
+		(start -1.9 -3.1)
+		(end 0 -3.1)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "01043d9f-5aea-4e4a-8d7c-8da94e255d53")
+	)
+	(fp_line
+		(start 0 -3.1)
+		(end 0 -2)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "1903d427-13fc-4312-804f-382f2e4272e4")
+	)
+	(fp_line
+		(start 0 3.1)
+		(end 0 2)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "276f461f-5474-4595-84f1-d724a0532723")
+	)
+	(fp_rect
+		(start -18 -3.1)
+		(end -1.9 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill solid)
+		(layer "F.SilkS")
+		(uuid "a70988ea-2623-400e-849a-d62d6932005e")
+	)
+	(fp_rect
+		(start -18 -3.1)
+		(end 0 3.1)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill none)
+		(layer "F.CrtYd")
+		(uuid "9bb250d9-dc18-401f-b98b-7a8a5f8786b0")
+	)
+	(fp_rect
+		(start -18 -3.1)
+		(end 0 3.1)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(fill none)
+		(layer "F.Fab")
+		(uuid "92b3844b-3fd1-4e2f-9711-b472c1f67d88")
+	)
+	(fp_text user "-"
+		(at 2.5 -1.2 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "c611095d-d612-4e1c-b8c6-4be27d69043d")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(fp_text user "+"
+		(at 2.5 1.3 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "f149094c-131c-4ebb-838d-79497c64535e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(fp_text user "${REFERENCE}"
+		(at -9.3 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "a2a79ea8-fd4c-4e0c-97d8-8f4e9d28c32e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd roundrect
+		(at 0 1.25)
+		(size 3 1)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.1640419948)
+		(thermal_bridge_angle 45)
+		(uuid "99a4a090-8315-46f8-91bd-6e9831bb831c")
+	)
+	(pad "2" smd roundrect
+		(at 0 -1.25)
+		(size 3 1)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.1640419948)
+		(thermal_bridge_angle 45)
+		(uuid "3613c3e4-ff2a-438a-9499-ad032c3ff519")
+	)
+	(model "${KICAD8_3DMODEL_DIR}/Capacitor_THT.3dshapes/C_Radial_D6.3mm_H11.0mm_P2.50mm.step"
+		(offset
+			(xyz -4 -1 3.1)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 90 0 -90)
+		)
+	)
+)
