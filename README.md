@@ -21,7 +21,7 @@ https://docs.google.com/document/d/1xm5VXMs9jcL1oQyPIb4WubiSsU_rn1Bk5Yaru9MKfjI/
 The following Google Doc is a HW report for the PCB. This includes a BOM and pinout diagram
 https://docs.google.com/spreadsheets/d/1yKb0Uep4GiwMZgCa3Em3xfYRrIc_w2GCmBEI8sHW7xg/edit?usp=sharing
 
-![CDRC PCB](Images/CDRC_PCB.png)
+![CDRC PCB](Images/Boards/RevA//CDRC_PCB.png)
 
 ## Web Interface for CDRC
 
@@ -35,12 +35,28 @@ https://docs.google.com/spreadsheets/d/1yKb0Uep4GiwMZgCa3Em3xfYRrIc_w2GCmBEI8sHW
 
 ## Update 1 - Rev A Hardware
 
-| ![Custom DRC - Rev A Assembly Render](Images/RevA_assem_render.png) |
-| :-----------------------------------------------------------------: |
-|                _Custom DRC - Rev A Assembly Render_                 |
+| ![Custom DRC - Rev A Assembly Render](Images/Boards/RevA/RevA_assem_render.png) |
+| :-----------------------------------------------------------------------------: |
+|                      _Custom DRC - Rev A Assembly Render_                       |
 
-| ![Custom DRC - Rev A Manufactured](Images/RevA_Manuf.jpg) |
-| :-------------------------------------------------------: |
-|             _Custom DRC - Rev A Manufactured_             |
+| ![Custom DRC - Rev A Manufactured](Images/Boards/RevA/RevA_Manuf.jpg) |
+| :-------------------------------------------------------------------: |
+|                   _Custom DRC - Rev A Manufactured_                   |
 
 Rev A working well. Mod required to jump the RS485 RX line to a test-point pad to allow for wakeup on activity (requires pin to be in RTC power domain)
+
+## Update 2 - Rev B Hardware
+
+| ![Custom DRC - Rev B Board Front](Images/Boards/RevB/rev2_front.jpeg) |
+| :-------------------------------------------------------------------: |
+|                   _Custom DRC - Rev B Board Front_                    |
+
+| ![Custom DRC - Rev B Board Front](Images/Boards/RevB/rev2_rear.jpeg) |
+| :------------------------------------------------------------------: |
+|                   _Custom DRC - Rev B Board Rear_                    |
+
+| ![Custom DRC - Rev B Board Front](Images/Boards/RevB/rev2_front_pop.jpeg) |
+| :-----------------------------------------------------------------------: |
+|                   _Custom DRC - Rev B Board Populated_                    |
+
+Rev B saw fixes regarding issues with Rev A, an updated to the board outline and an update to a fully SMD design. Device is fully functional
