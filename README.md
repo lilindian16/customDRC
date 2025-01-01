@@ -59,4 +59,4 @@ Rev A working well. Mod required to jump the RS485 RX line to a test-point pad t
 | :-----------------------------------------------------------------------: |
 |                   _Custom DRC - Rev B Board Populated_                    |
 
-Rev B saw fixes regarding issues with Rev A, an updated to the board outline and an update to a fully SMD design. Device is fully functional
+Rev B saw fixes regarding issues with Rev A, an update to the board outline and an update to a fully SMD design. Device is fully functional
