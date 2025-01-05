@@ -19,3 +19,8 @@ void update_web_server_parameter(uint8_t parameter, uint8_t value);
  * Update a web server parameter with a string. Note, the string must be null terminated!!
  */
 void update_web_server_parameter_string(uint8_t parameter, char* value_string);
+
+/**
+ * Task to handle updating the DRC with the latest settings / inputs from the webserver
+ */
+void update_drc_settings_task(void* pvParameters);

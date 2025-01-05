@@ -37,6 +37,13 @@ struct DSP_Settings* dsp_settings_web_server;
 
 bool client_connected_to_websocket = false;
 
+TaskHandle_t update_drc_task_handle;
+
+bool update_master_volume = false;
+bool update_subwoofer_volume = false;
+bool update_balance = false;
+bool update_fader = false;
+
 /**
  * Handle JSON keys and values that are received from webserver websocket
  */
@@ -64,22 +71,22 @@ void handle_json_key_value(JsonPair key_value) {
     } else if (strcmp(key_value.key().c_str(), "masterVolume") == 0) {
         uint8_t master_volume_value = key_value.value();
         dsp_settings_web_server->master_volume = master_volume_value;
+        update_master_volume = true;
         Serial.printf("*WS* masterVolume: %d\n", master_volume_value);
-        Audison_AC_Link.set_volume(master_volume_value);
     } else if (strcmp(key_value.key().c_str(), "subVolume") == 0) {
         uint8_t sub_volume_value = key_value.value();
         dsp_settings_web_server->sub_volume = sub_volume_value;
-        Audison_AC_Link.set_sub_volume(sub_volume_value);
+        update_subwoofer_volume = true;
         Serial.printf("*WS* subVolume: %d\n", sub_volume_value);
     } else if (strcmp(key_value.key().c_str(), "balance") == 0) {
         uint8_t balance_value = key_value.value();
         dsp_settings_web_server->balance = balance_value;
-        Audison_AC_Link.set_balance(balance_value);
+        update_balance = true;
         Serial.printf("*WS* balance: %d\n", balance_value);
     } else if (strcmp(key_value.key().c_str(), "fader") == 0) {
         uint8_t fader_value = key_value.value();
         dsp_settings_web_server->fader = fader_value;
-        Audison_AC_Link.set_fader(fader_value);
+        update_fader = true;
         Serial.printf("*WS* fader: %d\n", fader_value);
     } else {
         Serial.println("Unknown JSON format key value pair");
@@ -200,6 +207,8 @@ void web_server_init(struct DSP_Settings* settings) {
     WiFi.onEvent(WiFiEvent);
 
     initWebSocket();
+    xTaskCreatePinnedToCore(update_drc_settings_task, "WEB-DRC", 8000, NULL, tskIDLE_PRIORITY + 1,
+                            &update_drc_task_handle, 1);
 
     server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
         request->send_P(200, "text/html", (const uint8_t*)custom_html, sizeof(custom_html), nullptr);
@@ -269,5 +278,33 @@ void update_web_server_parameter_string(uint8_t parameter, char* value_string) {
         default:
             log_e("Unknown webserver parameter string update requested");
             break;
+    }
+}
+
+void update_drc_settings_task(void* pvParameters) {
+    while (1) {
+        /* We need to make sure we do not inundate the bus with too many messages
+        so we update at a rate of 4Hz */
+        if (update_master_volume) {
+            Audison_AC_Link.set_volume(dsp_settings_web_server->master_volume);
+            update_master_volume = false;
+            vTaskDelay(pdMS_TO_TICKS(250));
+        }
+        if (update_subwoofer_volume) {
+            Audison_AC_Link.set_sub_volume(dsp_settings_web_server->sub_volume);
+            update_subwoofer_volume = false;
+            vTaskDelay(pdMS_TO_TICKS(250));
+        }
+        if (update_balance) {
+            Audison_AC_Link.set_balance(dsp_settings_web_server->balance);
+            update_balance = false;
+            vTaskDelay(pdMS_TO_TICKS(250));
+        }
+        if (update_fader) {
+            Audison_AC_Link.set_balance(dsp_settings_web_server->fader);
+            update_fader = false;
+            vTaskDelay(pdMS_TO_TICKS(250));
+        }
+        vTaskDelay(pdMS_TO_TICKS(250));
     }
 }
