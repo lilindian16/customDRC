@@ -301,7 +301,7 @@ void update_drc_settings_task(void* pvParameters) {
             vTaskDelay(pdMS_TO_TICKS(250));
         }
         if (update_fader) {
-            Audison_AC_Link.set_balance(dsp_settings_web_server->fader);
+            Audison_AC_Link.set_fader(dsp_settings_web_server->fader);
             update_fader = false;
             vTaskDelay(pdMS_TO_TICKS(250));
         }
