@@ -287,11 +287,13 @@ void update_drc_settings_task(void* pvParameters) {
         so we update at a rate of 4Hz */
         if (update_master_volume) {
             Audison_AC_Link.set_volume(dsp_settings_web_server->master_volume);
+            set_encoder_value(0, dsp_settings_web_server->master_volume);
             update_master_volume = false;
             vTaskDelay(pdMS_TO_TICKS(250));
         }
         if (update_subwoofer_volume) {
             Audison_AC_Link.set_sub_volume(dsp_settings_web_server->sub_volume);
+            set_encoder_value(1, dsp_settings_web_server->sub_volume);
             update_subwoofer_volume = false;
             vTaskDelay(pdMS_TO_TICKS(250));
         }
