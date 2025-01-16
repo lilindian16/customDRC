@@ -8,7 +8,6 @@
 #include "CustomDRCWebServer.hpp"
 #include "DRCEncoder.hpp"
 
-#define FW_VERSION "0.0.1"
 constexpr uint8_t DRC_FIRMWARE_VERSION[2] = {0x03, 0x00};
 
 /* RS485 Pinouts */
@@ -60,6 +59,7 @@ enum DSP_Settings_Indexes {
     DSP_SETTING_INDEX_BALANCE,
     DSP_SETTING_INDEX_FADER,
     DSP_SETTING_INDEX_USB_CONNECTED,
+    FIRMWARE_VERSION_NUMBER_STRING_PARAMETER,
 };
 
 typedef enum {

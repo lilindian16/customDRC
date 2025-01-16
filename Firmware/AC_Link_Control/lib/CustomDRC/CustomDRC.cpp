@@ -4,6 +4,8 @@
 
 #include "CustomDRC.hpp"
 
+#include "../../include/version.h"
+
 #include <Arduino.h>
 #include <ArduinoNvs.h>
 #include <esp_ota_ops.h>

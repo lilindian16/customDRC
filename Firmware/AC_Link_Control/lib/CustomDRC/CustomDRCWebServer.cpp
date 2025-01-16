@@ -4,6 +4,8 @@
 
 #include "CustomDRCWebServer.hpp"
 
+#include "../../include/version.h"
+
 #include "AudisonACLinkBus.hpp"
 #include "CustomDRC.hpp"
 #include "CustomDRCcss.h"
@@ -58,6 +60,7 @@ void handle_json_key_value(JsonPair key_value) {
         update_web_server_parameter(DSP_SETTING_INDEX_BALANCE, dsp_settings_web_server->balance);
         update_web_server_parameter(DSP_SETTING_INDEX_FADER, dsp_settings_web_server->fader);
         update_web_server_parameter(DSP_SETTING_INDEX_USB_CONNECTED, (uint8_t)dsp_settings_web_server->usb_connected);
+        update_web_server_parameter_string(FIRMWARE_VERSION_NUMBER_STRING_PARAMETER, FW_VERSION);
     } else if (strcmp(key_value.key().c_str(), "password") == 0) {
         String password = key_value.value();
         Serial.printf("*WS* password: %s\n", password.c_str());
@@ -274,6 +277,9 @@ void update_web_server_parameter_string(uint8_t parameter, char* value_string) {
     switch (parameter) {
         case DSP_SETTINGS_CURRENT_INPUT_SOURCE:
             web_socket_handle.printfAll("{\"currentSource\": \"%s\"}", value_string);
+            break;
+        case FIRMWARE_VERSION_NUMBER_STRING_PARAMETER:
+            web_socket_handle.printfAll("{\"fwVersion\": \"%s\"}", value_string);
             break;
         default:
             log_e("Unknown webserver parameter string update requested");
