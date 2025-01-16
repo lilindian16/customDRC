@@ -148,3 +148,11 @@ void enable_encoders(void) {
 bool are_encoders_enabled(void) {
     return encoders_enabled;
 }
+
+void set_encoder_value(uint8_t encoder_index, uint8_t value) {
+    if (encoder_index == 0) {
+        encoder_1.setCount(value);
+    } else if (encoder_index == 1) {
+        encoder_2.setCount(value);
+    }
+}
