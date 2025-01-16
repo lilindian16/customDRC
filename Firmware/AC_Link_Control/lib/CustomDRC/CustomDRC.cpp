@@ -99,7 +99,9 @@ void on_button_released(bool button_was_held) {
 }
 
 void on_button_clicked(void) {
-    Audison_AC_Link.change_source();
+    // We want to swap memory on button clicked
+    dsp_settings.memory_select = !dsp_settings.memory_select; // We have only 2 memories so boolean invert the current
+    Audison_AC_Link.set_dsp_memory(dsp_settings.memory_select);
 }
 
 void load_dsp_settings_from_nvs(struct DSP_Settings* settings) {
