@@ -1,6 +1,7 @@
 .pio/build/ESP32-WROOM-32UE/libabd/CustomDRC/CustomDRCWebServer.cpp.o: \
  lib/CustomDRC/CustomDRCWebServer.cpp \
- lib/CustomDRC/CustomDRCWebServer.hpp lib/CustomDRC/AudisonACLinkBus.hpp \
+ lib/CustomDRC/CustomDRCWebServer.hpp \
+ lib/CustomDRC/../../include/version.h lib/CustomDRC/AudisonACLinkBus.hpp \
  lib/CustomDRC/CustomDRC.hpp lib/CustomDRC/DRCEncoder.hpp \
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp_arduino_version.h \

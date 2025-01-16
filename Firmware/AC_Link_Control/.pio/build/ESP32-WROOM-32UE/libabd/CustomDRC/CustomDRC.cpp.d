@@ -142,6 +142,7 @@
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
+ lib/CustomDRC/../../include/version.h \
  lib/ArduinoNvs-master/src/ArduinoNvs.h \
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/nvs_flash/include/nvs_flash.h \
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/nvs_flash/include/nvs.h \

@@ -138,4 +138,5 @@
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_ringbuf/include/freertos/ringbuf.h \
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/soc/esp32/include/soc/rmt_struct.h \
  /Users/jaime/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/hal/include/hal/rmt_types.h \
- lib/CustomDRC/CustomDRCWebServer.hpp lib/CustomDRC/DRCEncoder.hpp
+ lib/CustomDRC/CustomDRCWebServer.hpp lib/CustomDRC/DRCEncoder.hpp \
+ include/version.h
