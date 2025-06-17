@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" type="text/css" href="pico.min.css" />
+    <title>Custom DRC Config</title>
+  </head>
+
+  <body>
+    <main class="container">
+      <fieldset role="group">
+        <h1>Custom DRC</h1>
+        <button id="quitButton" style="display: none">Quit</button>
+      </fieldset>
+      <p id="busConnection">
+        <del>Link Bus Active</del>
+      </p>
+      <div class="container" id="mainBody">
+        <section>
+          <!-- DSP Memory Select -->
+          <fieldset>
+            <legend>DSP Memory Select:</legend>
+            <input
+              type="radio"
+              id="DSPMemA"
+              value="0"
+              name="dspMemory"
+              checked
+            />
+            <label htmlFor="DSPMemA">A</label>
+            <input type="radio" id="DSPMemB" value="1" name="dspMemory" />
+            <label htmlFor="DSPMemB">B</label>
+          </fieldset>
+
+          <!-- Current Input Source -->
+          <fieldset role="group">
+            <p>
+              Current Input Source:
+              <u id="currentSourceLabel"> Master </u>
+            </p>
+          </fieldset>
+          <button id="changeSourceButton">Change Source</button>
+          <!-- Mute Switch -->
+          <!-- <fieldset>
+            <label>
+              <input
+                name="Mute"
+                type="checkbox"
+                role="switch"
+                ,
+                id="mute_switch"
+              />
+              Mute
+            </label>
+          </fieldset> -->
+        </section>
+
+        <!-- Control Inputs -->
+        <section>
+          <label for="masterVolume"
+            >Master Volume: <span id="masterVolumeValue"></span
+          ></label>
+          <input id="masterVolume" type="range" min="0" max="120" step="1" />
+
+          <label for="subVolume"
+            >Sub. Volume: <span id="subVolumeValue"></span
+          ></label>
+          <input id="subVolume" type="range" min="0" max="24" step="1" />
+
+          <label for="balance">Balance: <span id="balanceValue"></span></label>
+          <input id="balance" type="range" min="0" max="36" step="1" />
+
+          <label for="fader">Fader: <span id="faderValue"></span></label>
+          <input id="fader" type="range" min="0" max="36" step="1" />
+        </section>
+
+        <!-- Write Config to DSP -->
+        <section style="display: none">
+          <label>
+            Write Settings to DSP
+            <input type="button" value="Write to DSP" disabled />
+          </label>
+        </section>
+
+        <!-- Webpage Password Update -->
+        <section style="display: none">
+          <label for="updatePassword">Update Password</label>
+          <fieldset role="group" id="updatePassword">
+            <input
+              type="password"
+              placeholder="Enter New Password"
+              aria-label="Enter New Password"
+              disabled
+            />
+            <input type="button" value="Update Password" disabled />
+          </fieldset>
+        </section>
+
+        <!-- WiFi credentials Update -->
+        <section id="credentialsConfig" style="display: none;">
+          <label for="credentialsUpdateForm">WiFi Credentials Update</label>
+          <form action="" id="credentialsUpdateForm">
+            <input
+              type="text"
+              name="ssidInput"
+              placeholder="SSID"
+              aria-label="Text"
+              id="wifiCredentailsSSID"
+            />
+            <input
+              type="password"
+              name="passwordInput"
+              placeholder="Password"
+              aria-label="Text"
+              id="wifiCredentailsPassword"
+              aria-invalid="true"
+            />
+            <small>Minimum 8 characters</small>
+          </form>
+        </section>
+
+        <!-- Modal Button -->
+        <section id="modal" style="display: none;">
+          <input type="button" id="credentialsUpdateButton" data-target="modal-example" onclick="toggleModal(event)" value="Update WiFi Credentials" disabled></input>
+        </section>
+        <!-- ./ Modal -->
+
+        <!-- Modal -->
+        <dialog id="modal-example">
+          <article>
+            <header>
+              <button
+                aria-label="Close"
+                rel="prev"
+                data-target="modal-example"
+                onclick="toggleModal(event)"
+              ></button>
+              <h3>Update WiFi Credentials?</h3>
+            </header>
+            <footer>
+              <button
+                role="button"
+                class="secondary"
+                data-target="modal-example"
+                onclick="toggleModal(event)"
+              >
+                Cancel</button
+              ><button
+                autofocus
+                data-target="modal-example"
+                onclick="toggleModal(event)"
+                id="confirmCredentialsUpdateButton"
+              >
+                Confirm
+              </button>
+            </footer>
+          </article>
+        </dialog>
+
+        <!-- OTA Update File Upload -->
+        <section>
+          <label for="ota_form">OTA Update</label>
+          <form
+            method="POST"
+            action="/upload"
+            enctype="multipart/form-data"
+            target="iframe"
+            id="ota_form"
+          >
+            <fieldset role="group">
+              <input type="file" id="ota_file" name="upload" />
+              <input type="submit" value="Upload" id="upload_ota_file_button" />
+            </fieldset>
+          </form>
+
+          <!-- Upload progress bar -->
+          <progress
+            id="ota_file_upload_progress"
+            style="display: none"
+            value="0"
+            max="100"
+          />
+        </section>
+      </div>
+      <!-- Footer -->
+      <footer class="container">
+        <p><small id="firmware_version_string">FW Vers: 1.0.0 </small></p>
+        <p><small>Built with PicoCSS </small></p>
+      </footer>
+      <!-- ./ Footer -->
+    </main>
+    <script src="index.js" type="text/javascript"></script>
+  </body>
+</html>
